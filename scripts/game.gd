@@ -5,6 +5,7 @@ var port := PORT
 var config := {"server_name": "Relay / Local", "mode": "TDM", "max_players": 8, "bots": 7, "difficulty": 0, "score_limit": 50, "time_limit": 600}
 var active := false
 var is_host := false
+var dedicated := false
 var local_id := 1
 var players := {}
 var scores := [0, 0]
@@ -43,6 +44,7 @@ var connecting := false
 
 func _ready() -> void:
 	headless = DisplayServer.get_name() == "headless"
+	dedicated = "--dedicated" in OS.get_cmdline_user_args()
 	setup_inputs()
 	arena = RelayArena.new()
 	add_child(arena)
@@ -81,6 +83,12 @@ func _ready() -> void:
 	multiplayer.server_disconnected.connect(func(): leave("Host hat das Spiel beendet."))
 	multiplayer.peer_disconnected.connect(_disconnected)
 	var args := OS.get_cmdline_user_args()
+	if dedicated:
+		var server := DedicatedServer.new()
+		server.game = self
+		add_child(server)
+		server.start(args)
+		return
 	for arg in args:
 		if arg.begins_with("--port="):
 			port = int(arg.get_slice("=", 1))
@@ -104,29 +112,36 @@ func setup_inputs() -> void:
 		event.physical_keycode = keys[action]
 		InputMap.action_add_event(action, event)
 
-func host(settings: Dictionary) -> void:
+func host(settings: Dictionary, as_dedicated: bool = false) -> bool:
+	dedicated = as_dedicated
 	var peer := ENetMultiplayerPeer.new()
-	var err := peer.create_server(port, 7)
+	if dedicated:
+		peer.set_bind_ip(settings.get("bind", "0.0.0.0"))
+	var err := peer.create_server(port, 8 if dedicated else 7)
 	if err != OK:
 		ui.message("Port %s ist belegt oder nicht verfügbar (Fehler %s)." % [port, err])
-		return
+		if dedicated:
+			printerr("SERVER ERROR: UDP %s konnte nicht gebunden werden (Fehler %s)." % [port, err])
+		return false
 	config = settings.duplicate()
 	config["difficulty"] = clampi(int(config.get("difficulty", 0)), 0, 3)
 	config.max_players = clampi(int(config.max_players), 2, 8)
-	config.bots = clampi(int(config.bots), 0, config.max_players - 1)
+	config.bots = clampi(int(config.bots), 0, config.max_players if dedicated else config.max_players - 1)
 	config.score_limit = clampi(int(config.score_limit), 1, 200)
 	config.time_limit = clampi(int(config.time_limit), 60, 1800)
 	multiplayer.multiplayer_peer = peer
-	local_id = 1
+	local_id = 0 if dedicated else 1
 	is_host = true
 	active = true
 	match_over = false
 	winner = ""
 	scores = [0, 0]
 	time_left = config.time_limit
-	add_player(1, nickname, false, loadout)
+	if not dedicated:
+		add_player(1, nickname, false, loadout)
 	fill_bots()
 	enter_match()
+	return true
 
 func join(address: String) -> void:
 	var host_address := address.strip_edges()
@@ -166,7 +181,7 @@ func register_player(display_name: String, selected: int) -> void:
 		rejected.rpc_id(id, "Server ist voll.")
 		return
 	for p: Fighter in players.values():
-		if p.bot and players.size() >= config.max_players:
+		if p.bot and (dedicated or players.size() >= config.max_players):
 			remove_player(p.peer_id)
 			break
 	add_player(id, display_name.strip_edges().left(20), false, clampi(selected, 0, 3))
@@ -203,12 +218,29 @@ func add_player(id: int, display_name: String, ai: bool, selected: int) -> Fight
 	return p
 
 func fill_bots() -> void:
-	var target: int = mini(config.max_players, config.bots + 1)
+	var target: int = mini(config.max_players, config.bots + (0 if dedicated else 1))
 	var id := -1
 	while players.size() < target:
 		while players.has(id):
 			id -= 1
 		add_player(id, ["Rook", "Mica", "Cinder", "Atlas", "Echo", "Vale", "Finch"][(-id - 1) % 7] + " [BOT]", true, (-id - 1) % 4)
+
+func restart_round() -> void:
+	if not is_host or not dedicated or not active:
+		return
+	scores = [0, 0]
+	time_left = config.time_limit
+	winner = ""
+	match_over = false
+	for grenade in grenades.get_children():
+		grenades.remove_child(grenade)
+		grenade.queue_free()
+	burn_zones.clear()
+	for fighter: Fighter in players.values():
+		fighter.kills = 0
+		fighter.deaths = 0
+		respawn(fighter)
+	snapshot_clock = 0.05
 
 func remove_player(id: int) -> void:
 	if players.has(id):
@@ -426,6 +458,7 @@ func receive_state(packet: PackedByteArray) -> void:
 	var remaining: float = decoded[2]
 	var ended: bool = decoded[3]
 	var result: String = decoded[4]
+	var new_round := match_over and not ended
 	var frags: Array = decoded[5]
 	burn_zones.sync(decoded[6])
 	scores = team_scores
@@ -442,6 +475,11 @@ func receive_state(packet: PackedByteArray) -> void:
 			add_child(p)
 			p.position = state.p
 		players[state.id].apply_snapshot(state)
+		if new_round and state.id == local_id:
+			players[state.id].global_position = state.p
+			players[state.id].velocity = Vector3.ZERO
+			players[state.id].yaw = state.yaw
+			players[state.id].pitch = state.pitch
 	for id in players.keys():
 		if not id in seen:
 			remove_player(id)

@@ -128,7 +128,7 @@ func main_menu() -> void:
 
 func multiplayer_menu() -> void:
 	page = "multiplayer"
-	clear("MULTIPLAYER", "LISTEN SERVER / LOKALES NETZWERK")
+	clear("MULTIPLAYER", "LAN / DEDICATED SERVER")
 	button("HOST GAME                 →", host_menu)
 	button("JOIN GAME                   →", browser_menu)
 	button("DIRECT CONNECT       →", direct_menu)

@@ -10,7 +10,8 @@ var elapsed := 0.0
 var available := false
 
 func _ready() -> void:
-	available = listener.bind(DISCOVERY_PORT, "0.0.0.0") == OK
+	# A dedicated server only advertises; leave the receive port to local clients.
+	available = not game.dedicated and listener.bind(DISCOVERY_PORT, "0.0.0.0") == OK
 	sender.set_broadcast_enabled(true)
 	sender.set_dest_address("255.255.255.255", DISCOVERY_PORT)
 
@@ -18,7 +19,7 @@ func _process(dt: float) -> void:
 	elapsed += dt
 	if elapsed > 1:
 		elapsed = 0
-		if game.active and game.is_host:
+		if game.active and game.is_host and game.config.get("discovery", true):
 			var humans := 0
 			for p: Fighter in game.players.values():
 				if not p.bot:

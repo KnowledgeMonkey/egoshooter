@@ -27,6 +27,8 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 
 ## LAN spielen
 
+**Separater Windows-Server:** `Start-Server.exe` startet einen Dedicated Server ohne eigenen Spielerplatz. Einstellungen in `server.json` oder per Kommandozeile; bis zu acht Clients, Bot-Auffüllung und automatische Folgerunden. Der Server läuft ohne Spielfenster. Bereitstellung, Netzwerkfreigabe und alle Optionen: **[Windows-Server-Anleitung](server/README-SERVER.md)**. Ein kopierbares Paket inklusive Engine lässt sich mit `server/Build-Package.ps1 -OutputDirectory <Zielordner>` erzeugen.
+
 **Host:** MULTIPLAYER → HOST GAME → Servername, Modus, Slots, Bots, Punktelimit und Zeit auswählen → START GAME. Die Karte ist Relay District. Im Pausenmenü stehen die lokalen Host-IP-Adressen.
 
 **Mitspieler:** denselben Projektstand auf den anderen PC kopieren → starten → MULTIPLAYER → JOIN GAME. Der Host wird per UDP-Broadcast gefunden. Alternativ DIRECT CONNECT → IPv4-Adresse des Hosts, z. B. `192.168.178.25`. Optional ist `IP:Port` möglich.
@@ -78,6 +80,9 @@ Die sieben Entwicklungsschritte mit Zielen, Dateien/Klassen, vollständigen Code
 ./tests/Run-Tests.ps1
 ./tests/Run-EightPlayers.ps1
 ./tests/Run-VerticalLan.ps1
+./tests/Run-Dedicated.ps1
+./tests/Run-DedicatedRounds.ps1
+./tests/Run-ServerLauncherTests.ps1
 ```
 
 Der erste Befehl prüft Gameplay/Physik, Waffen, Bot-Schwierigkeit, Grafikressourcen, Figurenmodelle, die neuen Etagen und einen Host mit einem separaten Client. Der zweite startet einen Host und sieben echte Clientprozesse auf Loopback. Der dritte prüft den serverautoritären Treppenaufstieg eines Clients. Ergebnisse liegen unter `tests/*.log`. Der ursprüngliche Prüfbericht steht in **[docs/TEST-REPORT.md](docs/TEST-REPORT.md)**; den aktuellen Karten-Prüfstand beschreibt **[docs/MAP-EXPANSION.md](docs/MAP-EXPANSION.md)**.
