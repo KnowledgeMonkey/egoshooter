@@ -26,6 +26,9 @@ var death_camera_target_id := 0
 var death_camera_fallback := Transform3D.IDENTITY
 var death_camera_look := Vector3.ZERO
 var grenades: Node3D
+var projectiles: Node3D
+var objectives: RoundObjectives
+var history: CombatHistory
 var burn_zones: BurnZones
 var grenade_serial := 0
 var snapshot_clock := 0.0
@@ -41,10 +44,17 @@ var graphics_quality := 1
 var headless := false
 var connect_clock := 0.0
 var connecting := false
+var last_address := "127.0.0.1:27840"
+var action_sequence := 0
 
 func _ready() -> void:
 	headless = DisplayServer.get_name() == "headless"
 	dedicated = "--dedicated" in OS.get_cmdline_user_args()
+	if not headless:
+		PlayerSettings.restore(self)
+	history = CombatHistory.new()
+	history.game = self
+	add_child(history)
 	setup_inputs()
 	arena = RelayArena.new()
 	add_child(arena)
@@ -52,6 +62,13 @@ func _ready() -> void:
 	grenades = Node3D.new()
 	grenades.name = "Grenades"
 	add_child(grenades)
+	projectiles = Node3D.new()
+	projectiles.name = "Projectiles"
+	add_child(projectiles)
+	objectives = RoundObjectives.new()
+	objectives.game = self
+	add_child(objectives)
+	objectives.reset()
 	combat = CombatSystem.new(self)
 	burn_zones = BurnZones.new()
 	burn_zones.game = self
@@ -105,7 +122,7 @@ func _ready() -> void:
 
 func setup_inputs() -> void:
 	var keys := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "jump": KEY_SPACE,
-		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "switch": KEY_Q, "scoreboard": KEY_TAB}
+		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "switch": KEY_Q, "scoreboard": KEY_TAB}
 	for action in keys:
 		InputMap.add_action(action)
 		var event := InputEventKey.new()
@@ -140,10 +157,13 @@ func host(settings: Dictionary, as_dedicated: bool = false) -> bool:
 	if not dedicated:
 		add_player(1, nickname, false, loadout)
 	fill_bots()
+	objectives.reset()
 	enter_match()
 	return true
 
 func join(address: String) -> void:
+	last_address = address.strip_edges()
+	save_preferences()
 	var host_address := address.strip_edges()
 	if host_address.contains(":"):
 		port = int(host_address.get_slice(":", 1))
@@ -236,6 +256,10 @@ func restart_round() -> void:
 		grenades.remove_child(grenade)
 		grenade.queue_free()
 	burn_zones.clear()
+	objectives.reset()
+	for projectile in projectiles.get_children():
+		projectiles.remove_child(projectile)
+		projectile.queue_free()
 	for fighter: Fighter in players.values():
 		fighter.kills = 0
 		fighter.deaths = 0
@@ -253,6 +277,8 @@ func _disconnected(id: int) -> void:
 		fill_bots()
 
 func leave(reason: String = "") -> void:
+	history.stop()
+	history.frames.clear()
 	death_camera_active = false
 	death_camera_target_id = 0
 	active = false
@@ -267,6 +293,10 @@ func leave(reason: String = "") -> void:
 	for grenade in grenades.get_children():
 		grenade.queue_free()
 	burn_zones.clear()
+	objectives.reset()
+	for projectile in projectiles.get_children():
+		projectiles.remove_child(projectile)
+		projectile.queue_free()
 	menu_camera.current = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	ui.main_menu()
@@ -295,11 +325,13 @@ func update_death_camera(victim: Fighter, delta: float) -> bool:
 	if not active or not victim.is_local():
 		return true
 	if victim.hp > 0 or match_over:
+		history.stop()
 		death_camera_active = false
 		death_camera_target_id = 0
 		victim.camera.make_current()
 		return false
 	if not death_camera_active:
+		history.begin(victim.killer_id)
 		death_camera_active = true
 		death_camera_target_id = 0
 		# Capture once: even later authoritative corpse corrections cannot move it.
@@ -307,9 +339,14 @@ func update_death_camera(victim: Fighter, delta: float) -> bool:
 		death_camera_fallback.origin = victim.eye() + Vector3.UP * 0.5
 	var target := death_camera_killer(victim)
 	if target == null:
+		history.stop()
 		death_camera_target_id = 0
 		spectator_camera.global_transform = death_camera_fallback
 	else:
+		if history.advance(delta, spectator_camera):
+			death_camera_target_id = target.peer_id
+			return true
+		spectator_camera.fov = 78
 		var pivot := target.eye()
 		var forward := Arsenal.direction(target.yaw, target.pitch)
 		var shoulder := Basis(Vector3.UP, target.yaw) * Vector3.RIGHT * 0.45
@@ -339,7 +376,7 @@ func respawn(p: Fighter) -> void:
 	for candidate in arena.spawn_points:
 		var score := randf_range(0, 2)
 		var home := candidate.z > 0 if p.team == 0 else candidate.z < 0
-		if home and config.mode == "TDM":
+		if home and config.mode != "FFA":
 			score += 12
 		for other: Fighter in players.values():
 			if other == p or other.hp <= 0:
@@ -362,6 +399,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F11:
 		var window := get_window()
 		window.mode = Window.MODE_WINDOWED if window.mode == Window.MODE_FULLSCREEN else Window.MODE_FULLSCREEN
+		save_preferences()
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE and active:
 		paused = not paused
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if paused else Input.MOUSE_MODE_CAPTURED
@@ -377,7 +415,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		p.yaw = wrapf(p.yaw - event.relative.x * sensitivity, -PI, PI)
 		p.pitch = clampf(p.pitch - event.relative.y * sensitivity, -1.5, 1.5)
-	for action in ["jump", "reload", "grenade", "switch"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch"]:
 		if event.is_action_pressed(action):
 			pending[action] = true
 
@@ -395,7 +433,11 @@ func _physics_process(dt: float) -> void:
 			command.merge({"move": Input.get_vector("left", "right", "forward", "back"),
 				"sprint": Input.is_action_pressed("sprint"), "crouch": Input.is_action_pressed("crouch"),
 				"ads": Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT), "fire": Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)}, true)
-			command.merge(pending)
+			if is_host:
+				command.merge(pending)
+			elif not pending.is_empty():
+				action_sequence += 1
+				submit_actions.rpc_id(1, action_sequence, pending)
 		pending.clear()
 		p.input_data = command.duplicate()
 		p.input_age = 0
@@ -404,6 +446,7 @@ func _physics_process(dt: float) -> void:
 			submit_input.rpc_id(1, input_sequence, command)
 	if is_host:
 		burn_zones.advance(dt)
+		objectives.advance(dt)
 		if not match_over:
 			time_left = maxf(0, time_left - dt)
 			if time_left <= 0:
@@ -414,10 +457,11 @@ func _physics_process(dt: float) -> void:
 			var roster := []
 			for p: Fighter in players.values():
 				roster.append(p.snapshot())
+			history.record(roster)
 			var frags := []
 			for g: FragGrenade in grenades.get_children():
-				frags.append({"id": int(g.name), "p": g.global_position, "owner": g.owner_id})
-			var packet := var_to_bytes([roster, scores, time_left, match_over, winner, frags, burn_zones.snapshot()]).compress(FileAccess.COMPRESSION_DEFLATE)
+				frags.append({"id": int(g.name), "p": g.global_position, "owner": g.owner_id, "kind": g.kind})
+			var packet := var_to_bytes([roster, scores, time_left, match_over, winner, frags, burn_zones.snapshot(), objectives.snapshot()]).compress(FileAccess.COMPRESSION_DEFLATE)
 			receive_state.rpc(packet)
 
 @rpc("any_peer", "call_remote", "unreliable_ordered", 1)
@@ -441,19 +485,37 @@ func submit_input(seq: int, command: Dictionary) -> void:
 	p.yaw = wrapf(float(y), -PI, PI)
 	p.pitch = clampf(float(tilt), -1.5, 1.5)
 	var clean := {"move": axis.limit_length()}
-	for flag in ["sprint", "crouch", "ads", "fire", "reload", "grenade", "switch", "jump"]:
+	for flag in ["sprint", "crouch", "ads", "fire"]:
 		clean[flag] = command.get(flag, false) == true
 	p.input_data = clean
 	p.input_age = 0
+
+@rpc("any_peer", "call_remote", "reliable", 3)
+func submit_actions(seq: int, actions: Dictionary) -> void:
+	if not is_host or not active or match_over:
+		return
+	var p: Fighter = players.get(multiplayer.get_remote_sender_id())
+	if p == null or p.hp <= 0 or seq <= p.last_action_sequence:
+		return
+	p.last_action_sequence = seq
+	for action in ["jump", "reload", "grenade", "flash", "switch"]:
+		if actions.get(action, false) == true:
+			p.queued_actions[action] = true
+
+func save_preferences() -> void:
+	if not headless and not dedicated:
+		if PlayerSettings.save(self) != OK and is_instance_valid(ui):
+			ui.message("Einstellungen konnten nicht gespeichert werden.")
 
 @rpc("authority", "call_remote", "unreliable_ordered", 2)
 func receive_state(packet: PackedByteArray) -> void:
 	if not active:
 		return
 	var decoded: Array = bytes_to_var(packet.decompress_dynamic(65536, FileAccess.COMPRESSION_DEFLATE))
-	if decoded.size() != 7:
+	if decoded.size() < 7 or decoded.size() > 8:
 		return
 	var roster: Array = decoded[0]
+	history.record(roster)
 	var team_scores: Array = decoded[1]
 	var remaining: float = decoded[2]
 	var ended: bool = decoded[3]
@@ -461,6 +523,7 @@ func receive_state(packet: PackedByteArray) -> void:
 	var new_round := match_over and not ended
 	var frags: Array = decoded[5]
 	burn_zones.sync(decoded[6])
+	if decoded.size() > 7: objectives.sync(decoded[7])
 	scores = team_scores
 	time_left = remaining
 	match_over = ended
@@ -487,14 +550,14 @@ func receive_state(packet: PackedByteArray) -> void:
 	for data: Dictionary in frags:
 		frag_ids.append(str(data.id))
 		if not grenades.has_node(str(data.id)):
-			create_grenade(data.id, data.owner, data.p, Vector3.ZERO)
+			create_grenade(data.id, data.owner, data.p, Vector3.ZERO, data.get("kind", "frag"))
 		grenades.get_node(str(data.id)).position = data.p
 	for g in grenades.get_children():
 		if not str(g.name) in frag_ids:
 			g.queue_free()
 
 func check_win() -> void:
-	if config.mode == "TDM":
+	if config.mode != "FFA":
 		if scores.max() >= config.score_limit:
 			finish_match()
 	else:
@@ -504,7 +567,7 @@ func check_win() -> void:
 
 func finish_match() -> void:
 	match_over = true
-	if config.mode == "TDM":
+	if config.mode != "FFA":
 		winner = "DRAW" if scores[0] == scores[1] else ("TEAM RELAY WINS" if scores[0] > scores[1] else "TEAM EMBER WINS")
 	else:
 		var best := -1
@@ -517,14 +580,16 @@ func finish_match() -> void:
 				leaders.append(p.nickname)
 		winner = "%s WINS" % leaders[0] if leaders.size() == 1 else "DRAW"
 
-func spawn_grenade(owner_id: int, pos: Vector3, speed: Vector3) -> void:
+func spawn_grenade(owner_id: int, pos: Vector3, speed: Vector3, kind: String = "frag") -> void:
 	grenade_serial += 1
-	create_grenade(grenade_serial, owner_id, pos, speed)
+	create_grenade(grenade_serial, owner_id, pos, speed, kind)
 
-func create_grenade(id: int, owner_id: int, pos: Vector3, speed: Vector3) -> void:
+func create_grenade(id: int, owner_id: int, pos: Vector3, speed: Vector3, kind: String = "frag") -> void:
 	var g := FragGrenade.new()
 	g.game = self
 	g.owner_id = owner_id
+	g.kind = kind
+	g.fuse = 1.6 if kind == "flash" else 2.6
 	g.name = str(id)
 	grenades.add_child(g)
 	g.position = pos

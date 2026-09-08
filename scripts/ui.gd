@@ -158,7 +158,7 @@ func host_menu() -> void:
 	clear("HOST GAME", "RELAY DISTRICT  /  UDP %s" % game.port)
 	panel.add_theme_constant_override("separation", 4)
 	text_field("name", "SERVER NAME", game.config.server_name)
-	option("mode", "GAME MODE", ["Team Deathmatch", "Free For All"], 0 if game.config.mode == "TDM" else 1)
+	option("mode", "GAME MODE", ["Team Deathmatch", "Free For All", "Domination", "Kill Confirmed"], ["TDM", "FFA", "DOM", "KC"].find(game.config.mode))
 	option("slots", "MAXIMUM PLAYERS", [2, 4, 6, 8], 3)
 	option("bots", "BOTS · FREIE PLÄTZE AUFFÜLLEN", [0, 1, 3, 5, 7], 4)
 	option("difficulty", "BOT-SCHWIERIGKEIT", BotSkill.NAMES, int(game.config.get("difficulty", 0)))
@@ -166,7 +166,7 @@ func host_menu() -> void:
 	fields.mode.item_selected.connect(func(index): fields.score.select(0 if index == 1 else 1))
 	option("time", "TIME LIMIT", ["5 Minuten", "10 Minuten", "15 Minuten"], 1)
 	button("START GAME               →", func():
-		game.host({"server_name": fields.name.text.left(30), "mode": "TDM" if fields.mode.selected == 0 else "FFA",
+		game.host({"server_name": fields.name.text.left(30), "mode": ["TDM", "FFA", "DOM", "KC"][fields.mode.selected],
 			"max_players": [2, 4, 6, 8][fields.slots.selected], "bots": [0, 1, 3, 5, 7][fields.bots.selected],
 			"difficulty": fields.difficulty.selected,
 			"score_limit": [25, 50, 75, 100][fields.score.selected], "time_limit": [300, 600, 900][fields.time.selected]}))
@@ -195,19 +195,20 @@ func refresh_browser() -> void:
 	for address in game.discovery.servers:
 		var info: Dictionary = game.discovery.servers[address]
 		var b := Button.new()
-		b.text = "%s  ·  %s/%s\n%s / %s      JOIN →" % [str(info.get("name", "Server")).left(28), info.get("players", 0), info.get("max", 8), info.get("mode", "TDM"), address]
+		var ping := "%s ms" % info.get("ping", -1) if info.get("ping", -1) >= 0 else "Ping …"
+		b.text = "%s  ·  %s/%s  ·  %s\n%s / %s      JOIN →" % [str(info.get("name", "Server")).left(22), info.get("players", 0), info.get("max", 8), ping, info.get("mode", "TDM"), address]
 		b.custom_minimum_size.y = 85
-		b.pressed.connect(func(): game.join(address + ":" + str(info.get("port", game.PORT))))
+		b.pressed.connect(func(): game.join(address))
 		browser_rows.add_child(b)
 
 func direct_menu() -> void:
 	page = "direct"
 	clear("CONNECT", "DIREKT ZUM HOST / IPv4")
-	text_field("ip", "HOST-ADRESSE · OPTIONAL :PORT", "192.168.178.25")
+	text_field("ip", "SERVER-ADRESSE · OPTIONAL :PORT", game.last_address)
 	button("CONNECT                     →", func(): game.join(fields.ip.text))
 	button("←  BACK", multiplayer_menu)
 	space(15)
-	label("Beide Computer müssen sich im gleichen\nNetzwerk befinden. Der Host startet zuerst.\nFür Tests auf diesem PC: 127.0.0.1", 18, Color("93aaa9"))
+	label("LAN- oder erreichbare Server-IP eingeben.\nDer Spielport muss per UDP erreichbar sein.\nFür Tests auf diesem PC: 127.0.0.1", 18, Color("93aaa9"))
 
 func loadout_menu() -> void:
 	page = "loadout"
@@ -223,12 +224,13 @@ func loadout_menu() -> void:
 	fields.primary.item_selected.connect(showcase.select_weapon)
 	button("P12 SIDEARM ANSEHEN   →", func(): showcase.select_weapon(4))
 	space(10)
-	label("SECONDARY     P12 SIDEARM\nLETHAL             2 × FRAG GRENADE", 20)
+	label("SECONDARY     P12 SIDEARM\nLETHAL             2 × FRAG / 1 × FLASH (F)", 20)
 	label("AR-4   Allround / mittlere Distanz\nV9       Schnell / Nahkampf\nSG-8   Acht Pellets / kurze Distanz\nM77    Präzision / langsame Feuerrate", 18, Color("93aaa9"))
 	space(10)
 	button("SAVE & BACK                →", func():
 		game.nickname = fields.player.text.strip_edges().left(20)
 		game.loadout = fields.primary.selected
+		game.save_preferences()
 		main_menu())
 
 func settings_menu() -> void:
@@ -244,7 +246,10 @@ func settings_menu() -> void:
 	slider("LAUTSTÄRKE", 0, 1, db_to_linear(AudioServer.get_bus_volume_db(0)), func(v): AudioServer.set_bus_volume_db(0, linear_to_db(maxf(0.0001, v))))
 	space(14)
 	label("WASD   Bewegen        SHIFT   Sprinten\nMAUS   Zielen              LMB / RMB   Feuer / ADS\nSPACE   Springen        CTRL   Ducken / Rutschen\nR   Nachladen               Q   Primär / Pistole\nG   Granate                    TAB   Scoreboard\nESC   Menü", 18, Color("93aaa9"))
-	button("←  BACK", pause_menu if game.active else main_menu)
+	button("SAVE & BACK", func():
+		game.save_preferences()
+		if game.active: pause_menu()
+		else: main_menu())
 
 func slider(title: String, minimum: float, maximum: float, value: float, callback: Callable) -> void:
 	label(title, 15, MINT)

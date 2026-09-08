@@ -7,6 +7,7 @@ var nickname := "Operator"
 var team := 0
 var bot := false
 var hp := 100.0
+var life := 0
 var kills := 0
 var deaths := 0
 var yaw := 0.0
@@ -29,6 +30,8 @@ var input_data := {}
 var input_age := 0.0
 var sequence := 0
 var last_sequence := -1
+var last_action_sequence := -1
+var queued_actions := {}
 var target_position := Vector3.ZERO
 var target_velocity := Vector3.ZERO
 var body_mesh: OperatorModel
@@ -41,6 +44,14 @@ var capsule: CapsuleShape3D
 var step_clock := 0.0
 var blast_shake := 0.0
 var bot_route := PackedVector2Array()
+var bot_path := PackedVector3Array()
+var bot_grenade_cooldown := 0.0
+var flash_left := 0.0
+var flashes := 1
+var radar_left := 0.0
+var mantle_left := 0.0
+var mantle_start := Vector3.ZERO
+var mantle_target := Vector3.ZERO
 var bot_think := 0.0
 var bot_target := Vector3.ZERO
 var bot_phase := 0
@@ -104,7 +115,7 @@ func _process(delta: float) -> void:
 		else:
 			global_position = global_position.lerp(target_position, minf(delta * 18, 1))
 	body_mesh.rotation.y = yaw
-	body_mesh.visible = hp > 0 and not is_local()
+	body_mesh.visible = hp > 0 and not is_local() and not game.history.playing
 	body_mesh.scale.y = 0.67 if crouched else 1.0
 	if not game.headless and body_mesh.visible:
 		var visual_velocity := velocity if game.is_host else target_velocity
@@ -144,12 +155,16 @@ func _physics_process(delta: float) -> void:
 	if not game.active or game.match_over:
 		return
 	if game.is_host:
+		bot_grenade_cooldown = maxf(0, bot_grenade_cooldown - delta)
+		flash_left = maxf(0, flash_left - delta)
+		radar_left = maxf(0, radar_left - delta)
 		if bot:
 			game.bots.update(self, delta)
 		input_age += delta
 		if not bot and input_age > 0.3:
 			input_data = {}
 		if hp <= 0:
+			queued_actions.clear()
 			respawn_left -= delta
 			if respawn_left <= 0:
 				game.respawn(self)
@@ -165,12 +180,33 @@ func _physics_process(delta: float) -> void:
 				var need: int = mini(Arsenal.DATA[weapon].mag - magazines[weapon], reserves[weapon])
 				magazines[weapon] += need
 				reserves[weapon] -= need
+		input_data.merge(queued_actions, true)
+		queued_actions.clear()
 		move_character(delta)
 		game.combat.actions(self)
 	elif is_local() and hp > 0:
 		move_character(delta)
 
 func move_character(delta: float) -> void:
+	if mantle_left > 0:
+		mantle_left = maxf(0, mantle_left - delta)
+		var t := 1 - mantle_left / 0.35
+		var next := mantle_start.lerp(mantle_target, t)
+		next.y = lerpf(mantle_start.y, mantle_target.y, minf(t * 2, 1))
+		if test_move(global_transform, next - global_position):
+			mantle_left = 0
+		else:
+			global_position = next
+		velocity = Vector3.ZERO
+		return
+	if input_data.get("jump", false) and is_on_floor():
+		var ledge := Mantle.destination(self)
+		if ledge.is_finite():
+			mantle_start = global_position
+			mantle_target = ledge
+			mantle_left = 0.35
+			input_data["jump"] = false
+			return
 	aiming = bool(input_data.get("ads", false))
 	var axis: Vector2 = input_data.get("move", Vector2.ZERO)
 	axis = axis.limit_length()
@@ -222,6 +258,8 @@ func move_character(delta: float) -> void:
 		game.fx.rpc("step", global_position, peer_id, 0)
 
 func reset_at(pos: Vector3) -> void:
+	life += 1
+	mantle_left = 0
 	killer_id = 0
 	killer = ""
 	killer_weapon = ""
@@ -235,12 +273,18 @@ func reset_at(pos: Vector3) -> void:
 	reload_left = 0
 	cooldown = 0
 	grenades = 2
+	flashes = 1
+	flash_left = 0
+	radar_left = 0
+	bot_grenade_cooldown = 4
 	last_hurt = 0
 	weapon = primary
 	magazines = [30, 36, 8, 5, 12]
 	reserves = [120, 144, 32, 25, 60]
 	input_data = {}
+	queued_actions.clear()
 	bot_route.clear()
+	bot_path.clear()
 	bot_enemy = 0
 	bot_acquired = 0
 	yaw = 0 if pos.z > 0 else PI
@@ -252,9 +296,12 @@ func snapshot() -> Dictionary:
 		"p": global_position, "v": velocity, "yaw": yaw, "pitch": pitch, "hp": hp,
 		"kills": kills, "deaths": deaths, "weapon": weapon, "mag": magazines, "reserve": reserves,
 		"reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
-		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id}
+		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id,
+		"flash": flash_left, "flashes": flashes, "radar": radar_left, "mantle": mantle_left, "life": life}
 
 func apply_snapshot(s: Dictionary) -> void:
+	var new_life := life != int(s.get("life", life))
+	life = int(s.get("life", life))
 	var was_dead := hp <= 0
 	target_position = s.p
 	target_velocity = s.v
@@ -275,10 +322,14 @@ func apply_snapshot(s: Dictionary) -> void:
 	killer = s.killer
 	killer_weapon = s.killer_weapon
 	killer_id = s.get("killer_id", 0)
+	flash_left = float(s.get("flash", 0))
+	flashes = int(s.get("flashes", 1))
+	radar_left = float(s.get("radar", 0))
 	if not is_local() or was_dead:
 		yaw = s.yaw
 		pitch = s.pitch
-	if was_dead and hp > 0:
+	if (was_dead or new_life) and hp > 0:
 		global_position = s.p
 		velocity = Vector3.ZERO
+		mantle_left = 0
 	shape.disabled = hp <= 0

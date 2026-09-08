@@ -98,13 +98,16 @@ func render() -> void:
 		var offset := 265.0 if killcam else 0.0
 		plate(Rect2(520, 310 + offset, 560, 245))
 		if killcam:
-			text(Vector2(758, 294 + offset), "KILLCAM", 18, MINT)
+			text(Vector2(715, 294 + offset), "KILLCAM / REPLAY" if game.history.playing else "KILLCAM / LIVE", 18, MINT)
 		text(Vector2(698, 359 + offset), "KILLED BY", 22, ORANGE)
 		text(Vector2(600, 410 + offset), p.killer, 38)
 		text(Vector2(689, 453 + offset), p.killer_weapon, 21)
 		text(Vector2(654, 510 + offset), "RESPAWN IN %.1f" % maxf(0, p.respawn_left), 24, MINT)
 	if Input.is_action_pressed("scoreboard") or game.match_over:
 		scoreboard()
+	if p.hp > 0 and p.flash_left > 0:
+		canvas.draw_rect(Rect2(0, 0, 1600, 900), Color(0.94, 0.95, 0.93, clampf(p.flash_left / 2.0, 0, 0.97)))
+		text(Vector2(709, 530), "FLASHBANG", 19, Color("344444"))
 
 func minimap(local: Fighter) -> void:
 	var origin := Vector2(40, 40)
@@ -119,10 +122,10 @@ func minimap(local: Fighter) -> void:
 	for p: Fighter in game.players.values():
 		if p.hp <= 0:
 			continue
-		if p != local and (not local or game.enemies(local, p)):
+		if p != local and (not local or (game.enemies(local, p) and p.radar_left <= 0)):
 			continue
 		var point := offset + Vector2(p.global_position.x, p.global_position.z) * scale_map
-		canvas.draw_circle(point, 4 if p == local else 3, WHITE if p == local else MINT)
+		canvas.draw_circle(point, 4 if p == local else 3, WHITE if p == local else (ORANGE if game.enemies(local, p) else MINT))
 		if p == local:
 			if p.global_position.y > 3.2:
 				text(origin + Vector2(12, 234), "DACH" if p.global_position.y > 7 else "1. OBERGESCHOSS", 11, MINT)

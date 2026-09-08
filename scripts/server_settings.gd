@@ -28,8 +28,8 @@ static func validate(settings: Dictionary) -> String:
 		return "server_name muss 1 bis 40 Zeichen enthalten."
 	if not settings.get("bind") is String or not settings.bind.is_valid_ip_address() or settings.bind.contains(":"):
 		return "bind muss eine lokale IPv4-Adresse sein (z.B. 0.0.0.0)."
-	if settings.get("mode") not in ["TDM", "FFA"]:
-		return "mode muss TDM oder FFA sein."
+	if settings.get("mode") not in ["TDM", "FFA", "DOM", "KC"]:
+		return "mode muss TDM, FFA, DOM oder KC sein."
 	if not settings.get("discovery") is bool:
 		return "discovery muss true oder false sein."
 	return ""

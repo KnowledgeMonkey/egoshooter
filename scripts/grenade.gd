@@ -5,6 +5,7 @@ var game: Node3D
 var owner_id := 0
 var fuse := 2.6
 var detonated := false
+var kind := "frag"
 
 func _ready() -> void:
 	collision_layer = 4
@@ -48,5 +49,6 @@ func _physics_process(delta: float) -> void:
 		fuse -= delta
 		if fuse <= 0:
 			detonated = true
-			game.combat.explode(global_position, owner_id)
+			if kind == "flash": game.combat.flash(global_position)
+			else: game.combat.explode(global_position, owner_id)
 			game.remove_grenade.rpc(int(name))
