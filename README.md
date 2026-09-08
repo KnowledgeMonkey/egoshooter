@@ -4,7 +4,7 @@ Spielbarer Godot-4.5-Prototyp eines kompakten LAN-Ego-Shooters. Eigene Stadtkart
 
 ## Start unter Windows
 
-1. **`Start-Game.exe` doppelklicken.** Der direkte Windows-Starter benötigt keinen CMD-Interpreter und prüft zuerst den Godot-Import. Die portable Engine liegt unter `tools/godot/`. `Start-Game.cmd` leitet ebenfalls an die EXE weiter.
+1. **`Start-Game.exe` doppelklicken.** Der Windows-Starter prüft bei jedem Start GitHub auf eine neue Spielversion, lädt sie automatisch herunter und prüft den Godot-Import. Die portable Engine liegt unter `tools/godot/`. `Start-Game.cmd` leitet ebenfalls an die EXE weiter.
 2. **PLAY** startet ein lokales Team-Deathmatch mit sieben Bots.
 3. Unter **LOADOUT** vorher Namen und Primärwaffe wählen.
 4. **ESC** öffnet das Menü; das Match läuft dabei weiter.
@@ -22,6 +22,8 @@ Bei einem Startfehler zeigt die EXE eine Meldung mit dem Diagnoseordner `logs/`.
 Zum Entwickeln `Open-Editor.cmd` starten oder `project.godot` in Godot **4.5 stable** importieren, danach **F6/F5**. Die Szene `scenes/main.tscn` erstellt Map, Spieler und Oberfläche selbst; keine manuellen Node-Verknüpfungen oder Asset-Downloads erforderlich.
 
 Falls die Engine beim Weitergeben fehlt: [Godot 4.5 für Windows](https://godotengine.org/download/archive/4.5-stable/) herunterladen und beide EXE-Dateien nach `tools/godot/` entpacken. Alternativ mit einer bereits installierten Godot-4.5-Engine `project.godot` öffnen. Ein eigenständiger Release-Export ohne Editor-Binary benötigt die passenden Godot-Exportvorlagen; diese sind nicht enthalten.
+
+Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversionen: **[Auto-Updater](docs/AUTO-UPDATER.md)**.
 
 ## LAN spielen
 

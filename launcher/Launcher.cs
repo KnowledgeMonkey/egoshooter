@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using System.Threading.Tasks;
+using System.Drawing;
 
 internal static class Launcher
 {
@@ -11,23 +13,61 @@ internal static class Launcher
         string root = AppDomain.CurrentDomain.BaseDirectory;
         string logs = Path.Combine(root, "logs");
         bool verify = Array.IndexOf(args, "--verify") >= 0;
+        bool offline = Array.IndexOf(args, "--offline") >= 0;
+        bool updateOnly = Array.IndexOf(args, "--update-only") >= 0;
+        Form window = null;
+        Label label = null;
         try
         {
             Directory.CreateDirectory(logs);
+            if (!verify && !updateOnly)
+            {
+                Application.EnableVisualStyles();
+                window = new Form { Text = "BLOCKLINE - Spielstart", ClientSize = new Size(520, 110),
+                    StartPosition = FormStartPosition.CenterScreen, FormBorderStyle = FormBorderStyle.FixedDialog,
+                    MaximizeBox = false, MinimizeBox = false, ControlBox = false };
+                label = new Label { Left = 20, Top = 25, Width = 480, Height = 65, Text = "Bereite Spielstart vor ..." };
+                window.Controls.Add(label);
+                window.Show();
+                Application.DoEvents();
+            }
+            Action<string> status = delegate(string message)
+            {
+                if (label != null) label.BeginInvoke((Action)delegate { label.Text = message; });
+            };
             string engine = Path.Combine(root, "tools", "godot", "Godot_v4.5-stable_win64.exe");
             if (!File.Exists(engine))
                 throw new FileNotFoundException("Godot fehlt: " + engine + "\nBitte den kompletten Spielordner verwenden.");
-            if (!File.Exists(Path.Combine(root, "project.godot")))
+            string gameRoot = root;
+            var update = Task.Factory.StartNew(delegate
+            {
+                return Updater.Select(root, engine, delegate(string executable, string project)
+                {
+                    string updateLog = Path.Combine(logs, "update-import.log");
+                    Run(executable, "--headless --editor --import --quit --path " + Quote(project) +
+                        " --log-file " + Quote(updateLog), project, true);
+                    CheckLog(updateLog);
+                    string smokeLog = Path.Combine(logs, "update-verify.log");
+                    Run(executable, "--headless --quit-after 5 --path " + Quote(project) +
+                        " --log-file " + Quote(smokeLog), project, true);
+                    CheckLog(smokeLog);
+                }, status, offline);
+            });
+            while (!update.IsCompleted) { Application.DoEvents(); System.Threading.Thread.Sleep(30); }
+            gameRoot = update.GetAwaiter().GetResult();
+            if (updateOnly) return 0;
+            if (!File.Exists(Path.Combine(gameRoot, "project.godot")))
                 throw new FileNotFoundException("project.godot fehlt neben Start-Game.exe.");
             // Import classes/resources even on a fresh copy without .godot cache.
             string importLog = Path.Combine(logs, "import.log");
-            Run(engine, "--headless --editor --import --quit --path " + Quote(root.TrimEnd('\\')) +
-                " --log-file " + Quote(importLog), root, true);
+            if (label != null) { label.Text = "Bereite Spielressourcen vor ..."; Application.DoEvents(); }
+            Run(engine, "--headless --editor --import --quit --path " + Quote(gameRoot.TrimEnd('\\')) +
+                " --log-file " + Quote(importLog), gameRoot, true);
             CheckLog(importLog);
             string gameLog = Path.Combine(logs, "game.log");
-            string arguments = "--path " + Quote(root.TrimEnd('\\')) + " --log-file " + Quote(gameLog);
+            string arguments = "--path " + Quote(gameRoot.TrimEnd('\\')) + " --log-file " + Quote(gameLog);
             if (verify) arguments += " --headless --max-fps 60 --quit-after 120";
-            Run(engine, arguments, root, verify);
+            Run(engine, arguments, gameRoot, verify);
             if (verify) CheckLog(gameLog);
             return 0;
         }
@@ -35,9 +75,10 @@ internal static class Launcher
         {
             string details = error.Message + "\n\nDiagnose: " + logs;
             try { File.WriteAllText(Path.Combine(logs, "launcher-error.txt"), error.ToString()); } catch { }
-            if (!verify) MessageBox.Show(details, "BLOCKLINE konnte nicht starten", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            if (!verify && !updateOnly) MessageBox.Show(details, "BLOCKLINE konnte nicht starten", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
+        finally { if (window != null) window.Dispose(); }
     }
 
     private static string Quote(string value) { return "\"" + value + "\""; }
@@ -51,10 +92,16 @@ internal static class Launcher
         using (var process = Process.Start(info))
         {
             if (!wait) return;
-            if (!process.WaitForExit(90000))
+            var elapsed = Stopwatch.StartNew();
+            while (!process.WaitForExit(50))
             {
-                process.Kill();
-                throw new Exception("Godot hat innerhalb von 90 Sekunden nicht reagiert.");
+                Application.DoEvents();
+                if (elapsed.ElapsedMilliseconds > 90000)
+                {
+                    process.Kill();
+                    process.WaitForExit();
+                    throw new Exception("Godot hat innerhalb von 90 Sekunden nicht reagiert.");
+                }
             }
             if (process.ExitCode != 0)
                 throw new Exception("Godot wurde mit Fehlercode " + process.ExitCode + " beendet.");

@@ -1,0 +1,5 @@
+.godot/
+.updates/
+logs/
+tools/
+tests/*.log
