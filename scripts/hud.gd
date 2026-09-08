@@ -93,11 +93,16 @@ func render() -> void:
 		if p.hp < 35:
 			canvas.draw_rect(Rect2(0, 0, 1600, 900), Color(0.7, 0.08, 0.03, 0.6), false, 13)
 	if p.hp <= 0:
-		plate(Rect2(520, 310, 560, 245))
-		text(Vector2(698, 359), "KILLED BY", 22, ORANGE)
-		text(Vector2(600, 410), p.killer, 38)
-		text(Vector2(689, 453), p.killer_weapon, 21)
-		text(Vector2(654, 510), "RESPAWN IN %.1f" % maxf(0, p.respawn_left), 24, MINT)
+		var killcam: bool = game.is_killcam_visible(p)
+		# Keep the killer visible above the plate during the shoulder view.
+		var offset := 265.0 if killcam else 0.0
+		plate(Rect2(520, 310 + offset, 560, 245))
+		if killcam:
+			text(Vector2(758, 294 + offset), "KILLCAM", 18, MINT)
+		text(Vector2(698, 359 + offset), "KILLED BY", 22, ORANGE)
+		text(Vector2(600, 410 + offset), p.killer, 38)
+		text(Vector2(689, 453 + offset), p.killer_weapon, 21)
+		text(Vector2(654, 510 + offset), "RESPAWN IN %.1f" % maxf(0, p.respawn_left), 24, MINT)
 	if Input.is_action_pressed("scoreboard") or game.match_over:
 		scoreboard()
 

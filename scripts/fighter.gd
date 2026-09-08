@@ -48,6 +48,7 @@ var bot_enemy := 0
 var bot_acquired := 0.0
 var killer := ""
 var killer_weapon := ""
+var killer_id := 0
 
 func setup(owner_game: Node3D, id: int, display_name: String, team_index: int, ai: bool, loadout: int) -> void:
 	game = owner_game
@@ -115,7 +116,10 @@ func _process(delta: float) -> void:
 		world_gun.add_child(WeaponModels.build(weapon))
 		world_weapon = weapon
 	if is_local():
-		camera.current = true
+		gun.visible = hp > 0
+		if game.update_death_camera(self, delta):
+			return
+		camera.make_current()
 		camera.rotation = Vector3(pitch, yaw, 0)
 		blast_shake = move_toward(blast_shake, 0, delta * 1.8)
 		var shake_clock := Time.get_ticks_msec() * 0.001
@@ -218,6 +222,10 @@ func move_character(delta: float) -> void:
 		game.fx.rpc("step", global_position, peer_id, 0)
 
 func reset_at(pos: Vector3) -> void:
+	killer_id = 0
+	killer = ""
+	killer_weapon = ""
+	respawn_left = 0
 	blast_shake = 0
 	global_position = pos
 	target_position = pos
@@ -244,7 +252,7 @@ func snapshot() -> Dictionary:
 		"p": global_position, "v": velocity, "yaw": yaw, "pitch": pitch, "hp": hp,
 		"kills": kills, "deaths": deaths, "weapon": weapon, "mag": magazines, "reserve": reserves,
 		"reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
-		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon}
+		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id}
 
 func apply_snapshot(s: Dictionary) -> void:
 	var was_dead := hp <= 0
@@ -266,6 +274,7 @@ func apply_snapshot(s: Dictionary) -> void:
 	grenades = s.grenades
 	killer = s.killer
 	killer_weapon = s.killer_weapon
+	killer_id = s.get("killer_id", 0)
 	if not is_local() or was_dead:
 		yaw = s.yaw
 		pitch = s.pitch

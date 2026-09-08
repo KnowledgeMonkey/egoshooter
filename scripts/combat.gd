@@ -83,6 +83,7 @@ func damage(target: Fighter, source: Fighter, amount: float, weapon_name: String
 		target.respawn_left = 3
 		target.killer = source.nickname
 		target.killer_weapon = weapon_name
+		target.killer_id = source.peer_id if source != target else 0
 		target.shape.set_deferred("disabled", true)
 		if source != target:
 			source.kills += 1

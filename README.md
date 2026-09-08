@@ -62,7 +62,7 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 - Godot-CharacterBody-Bewegung mit Gravitation, Springen, Sprinten, Ducken, Rutschen und kleinen Treppenstufen.
 - AR-4, V9-SMG, SG-8-Shotgun, M77-Sniper und P12-Pistole mit unterschiedlicher Kadenz, Schaden, Streuung, Magazingröße, Nachladen, ADS und Rückstoß. Alle fünf nutzen Hitscan.
 - 100 HP, Kopf-/Körper-/Beintreffer, Entfernungsabfall, schnelle TTK, Regeneration nach fünf Sekunden ohne Schaden. Kein Friendly Fire in TDM; eigene Granaten können verletzen.
-- Drei Sekunden Respawn, kurzer Killed-by-Bildschirm, dynamische Spawnwertung anhand Gegnernähe, Sichtlinien, belegten Positionen und jüngstem Beschuss. 1,8 Sekunden Schutz, der beim Schießen/Werfen endet.
+- Drei Sekunden Respawn mit [Live-Killcam aus der Schulterperspektive](docs/KILLCAM.md), Killed-by-Anzeige und Countdown; statische Todesansicht bei fehlendem oder totem Killer. Dynamische Spawnwertung anhand Gegnernähe, Sichtlinien, belegten Positionen und jüngstem Beschuss. 1,8 Sekunden Schutz, der beim Schießen/Werfen endet.
 - TDM mit standardmäßig 50 Team-Eliminierungen/10 Minuten; FFA mit im Host-Menü vorgeschlagenen 25 Eliminierungen. Bei Zeitablauf entscheidet der Punktestand; Gleichstände sind möglich.
 - Serverautoritäre Bewegung, Schaden, Munition, Schüsse, Teams, Granaten, Respawns und Matchregeln; ENet, 60 Physik-Ticks und 20 komprimierte Zustandsupdates pro Sekunde. Clients interpolieren fremde Spieler und sagen ihre eigene Bewegung einfach voraus.
 - Bots mit AStarGrid-Routen, Sichtprüfung, Verfolgung, wechselnden Lanes, Schießen, Nachladen und Respawn.
@@ -88,7 +88,7 @@ Grafikprüfung: `tools/godot/Godot_v4.5-stable_win64_console.exe --path . --log-
 
 Das Spiel ist weiterhin ein **spielbarer Prototyp**, dessen Stadtgrafik und Figuren inzwischen deutlich über den ursprünglichen Blockout hinausgehen. Die fünf Waffen besitzen eigene detaillierte 3D-Modelle mit abgeschrägten Kanten, Metall-/Polymermaterialien, Visierungen, Magazinen und beweglichen Verschlüssen. Architektur, Fahrzeuge und taktische Figuren werden aus eigenen Meshes aufgebaut; Animationen bleiben einfach, Sounds synthetisch. Dekorative Details ergänzen die einfachen Kollisionsformen; Treppen, Etagenböden, Fensteröffnungen und Dachdeckungen haben passende Gameplay-Kollisionen. Menschliches Map-Balancing, Sound-Mixing und längere Netzwerk-/Performance-Tests stehen aus. Die erweiterte Karte wurde auch im Grafikfenster geprüft; aktuelle Bilder liegen unter `docs/expansion-*.png`.
 
-Nicht enthalten sind die optionalen Flashbangs, Killcam, Mantling, Projektil-Sniper, Gegner-Radarpings sowie spätere Spielmodi. Der LAN-Browser listet Server ohne Ping-Messung. Es gibt keine Rückrechnung historischer Treffer (Lag Compensation), aufwendige Client-Reconciliation oder Produktions-Anti-Cheat-Lösung. Bei LAN-Paketverlust können einzelne kurze Tastenaktionen verloren gehen. Einstellungen gelten für die laufende Anwendung. Bots benutzen primär Bodenrouten und werfen noch keine Granaten.
+Nicht enthalten sind die optionalen Flashbangs, Rewind-Killcam, Mantling, Projektil-Sniper, Gegner-Radarpings sowie spätere Spielmodi. Der LAN-Browser listet Server ohne Ping-Messung. Es gibt keine Rückrechnung historischer Treffer (Lag Compensation), aufwendige Client-Reconciliation oder Produktions-Anti-Cheat-Lösung. Bei LAN-Paketverlust können einzelne kurze Tastenaktionen verloren gehen. Einstellungen gelten für die laufende Anwendung. Bots benutzen primär Bodenrouten und werfen noch keine Granaten.
 
 ## Technikquellen
 

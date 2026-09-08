@@ -13,10 +13,15 @@ var snapshots := 0
 var vertical := false
 var placed := false
 var saw_upper_floor := false
+var killcam := false
+var forced_kill := false
+var saw_killer := false
+var saw_respawn := false
 
 func _initialize() -> void:
 	is_server = "--server" in OS.get_cmdline_user_args()
 	vertical = "--vertical" in OS.get_cmdline_user_args()
+	killcam = "--killcam" in OS.get_cmdline_user_args()
 	expected_humans = 8 if "--eight" in OS.get_cmdline_user_args() else 2
 	call_deferred("start")
 
@@ -43,6 +48,19 @@ func _physics_process(dt: float) -> bool:
 				humans += 1
 		if humans == expected_humans:
 			saw_two_humans = true
+		if killcam and is_server:
+			for candidate: Fighter in game.players.values():
+				candidate.protection = 60
+			if humans == 2 and elapsed > 2 and not forced_kill:
+				for candidate: Fighter in game.players.values():
+					if candidate.bot or candidate.peer_id == 1:
+						continue
+					for attacker: Fighter in game.players.values():
+						if attacker.bot and game.enemies(candidate, attacker):
+							candidate.protection = 0
+							game.combat.damage(candidate, attacker, 200, "KILLCAM TEST", false)
+							forced_kill = true
+							break
 		if vertical and is_server and humans == 2 and not placed:
 			for candidate: Fighter in game.players.values():
 				if not candidate.bot and candidate.peer_id != 1:
@@ -52,6 +70,9 @@ func _physics_process(dt: float) -> bool:
 		if not is_server and game.players.has(game.local_id):
 			game.set_physics_process(false)
 			var p: Fighter = game.players[game.local_id]
+			if killcam:
+				saw_killer = saw_killer or (p.hp <= 0 and p.killer_id < 0 and game.players.has(p.killer_id) and p.killer_weapon == "KILLCAM TEST")
+				saw_respawn = saw_respawn or (saw_killer and p.hp > 0 and p.killer_id == 0)
 			if snapshots == 0:
 				initial = p.target_position
 			snapshots += 1
@@ -69,6 +90,9 @@ func _physics_process(dt: float) -> bool:
 				quit(1)
 	if elapsed > (15 if is_server else 9):
 		var success: bool = saw_two_humans and game.players.size() == 8 and (is_server or moved)
+		if killcam:
+			success = success and (forced_kill if is_server else saw_killer and saw_respawn)
+			print("NETWORK KILLCAM killed=", forced_kill, " received_killer=", saw_killer, " respawn=", saw_respawn)
 		if vertical and not is_server:
 			success = success and saw_upper_floor
 			print("VERTICAL upper_floor_snapshot=", saw_upper_floor)

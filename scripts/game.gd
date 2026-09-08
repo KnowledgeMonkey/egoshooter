@@ -19,6 +19,11 @@ var discovery: LanDiscovery
 var ui: GameUI
 var hud: ArenaHUD
 var menu_camera: Camera3D
+var spectator_camera: Camera3D
+var death_camera_active := false
+var death_camera_target_id := 0
+var death_camera_fallback := Transform3D.IDENTITY
+var death_camera_look := Vector3.ZERO
 var grenades: Node3D
 var burn_zones: BurnZones
 var grenade_serial := 0
@@ -60,6 +65,11 @@ func _ready() -> void:
 	menu_camera.position = Vector3(26, 13, 32)
 	menu_camera.look_at(Vector3(-2, 1.2, -4))
 	menu_camera.current = true
+	spectator_camera = Camera3D.new()
+	spectator_camera.name = "DeathCamera"
+	spectator_camera.near = 0.04
+	spectator_camera.fov = 78
+	add_child(spectator_camera)
 	ui = GameUI.new()
 	ui.game = self
 	add_child(ui)
@@ -211,6 +221,8 @@ func _disconnected(id: int) -> void:
 		fill_bots()
 
 func leave(reason: String = "") -> void:
+	death_camera_active = false
+	death_camera_target_id = 0
 	active = false
 	connecting = false
 	match_over = false
@@ -230,6 +242,58 @@ func leave(reason: String = "") -> void:
 
 func enemies(a: Fighter, b: Fighter) -> bool:
 	return a != b and (config.mode == "FFA" or a.team != b.team)
+
+func death_camera_killer(victim: Fighter) -> Fighter:
+	if victim.hp > 0 or victim.killer_id == 0 or victim.killer_id == victim.peer_id:
+		return null
+	var target: Fighter = players.get(victim.killer_id)
+	if not is_instance_valid(target) or target.is_queued_for_deletion() or target.hp <= 0:
+		return null
+	return target
+
+func is_killcam_visible(victim: Fighter) -> bool:
+	return not headless and not match_over and death_camera_active and spectator_camera.current \
+		and death_camera_target_id == victim.killer_id and death_camera_killer(victim) != null
+
+# Returns true while normal first-person camera animation must be suppressed.
+# Only the local Fighter calls this; remote/bot cameras never become current.
+func update_death_camera(victim: Fighter, delta: float) -> bool:
+	if headless or paused:
+		return true
+	if not active or not victim.is_local():
+		return true
+	if victim.hp > 0 or match_over:
+		death_camera_active = false
+		death_camera_target_id = 0
+		victim.camera.make_current()
+		return false
+	if not death_camera_active:
+		death_camera_active = true
+		death_camera_target_id = 0
+		# Capture once: even later authoritative corpse corrections cannot move it.
+		death_camera_fallback = victim.camera.global_transform
+		death_camera_fallback.origin = victim.eye() + Vector3.UP * 0.5
+	var target := death_camera_killer(victim)
+	if target == null:
+		death_camera_target_id = 0
+		spectator_camera.global_transform = death_camera_fallback
+	else:
+		var pivot := target.eye()
+		var forward := Arsenal.direction(target.yaw, target.pitch)
+		var shoulder := Basis(Vector3.UP, target.yaw) * Vector3.RIGHT * 0.45
+		var destination := pivot - forward * 2.4 + Vector3.UP * 0.5 + shoulder
+		if death_camera_target_id != target.peer_id:
+			# Cut on entry; never fly across the map from the victim to the killer.
+			spectator_camera.global_position = destination
+			death_camera_look = pivot
+		else:
+			var weight := 1.0 - exp(-delta * 8.0)
+			spectator_camera.global_position = spectator_camera.global_position.lerp(destination, weight)
+			death_camera_look = death_camera_look.lerp(pivot, weight)
+		spectator_camera.look_at(death_camera_look)
+		death_camera_target_id = target.peer_id
+	spectator_camera.make_current()
+	return true
 
 func visible_between(a: Vector3, b: Vector3, exclude: Array = []) -> bool:
 	var rids: Array[RID] = []
@@ -276,6 +340,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not active or paused or match_over or not players.has(local_id):
 		return
 	var p: Fighter = players[local_id]
+	if p.hp <= 0:
+		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		p.yaw = wrapf(p.yaw - event.relative.x * sensitivity, -PI, PI)
 		p.pitch = clampf(p.pitch - event.relative.y * sensitivity, -1.5, 1.5)
@@ -293,7 +359,7 @@ func _physics_process(dt: float) -> void:
 	if players.has(local_id) and not players[local_id].bot:
 		var p: Fighter = players[local_id]
 		var command := {"move": Vector2.ZERO, "yaw": p.yaw, "pitch": p.pitch}
-		if not paused and not match_over and not headless:
+		if p.hp > 0 and not paused and not match_over and not headless:
 			command.merge({"move": Input.get_vector("left", "right", "forward", "back"),
 				"sprint": Input.is_action_pressed("sprint"), "crouch": Input.is_action_pressed("crouch"),
 				"ads": Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT), "fire": Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)}, true)
