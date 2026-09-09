@@ -20,16 +20,22 @@ static func get_surface(kind: String, tint: Color = Color.WHITE) -> StandardMate
 	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	mat.uv1_triplanar = true
 	mat.uv1_world_triplanar = true
-	var maps := {"asphalt": "asphalt", "concrete": "concrete", "plaster": "concrete", "paving": "paving", "ground": "ground"}
+	# Tile width in metres (source scan dimensions), restrained normal strength.
+	var maps := {
+		"asphalt": [2.1, 0.3], "concrete": [2.71, 0.4],
+		"plaster": [2.0, 0.22], "paving": [3.1, 0.45],
+		"ground": [4.0, 0.6], "wood": [1.5, 0.3], "floor": [2.08, 0.25]
+	}
 	if maps.has(kind):
-		var prefix: String = maps[kind]
+		var prefix: String = kind
 		mat.albedo_texture = texture("res://assets/materials/%s_color.jpg" % prefix)
 		mat.normal_enabled = true
 		mat.normal_texture = texture("res://assets/materials/%s_normal.jpg" % prefix)
-		mat.normal_scale = 0.5 if kind == "plaster" else (0.7 if kind == "asphalt" else 0.85)
+		mat.normal_scale = maps[kind][1]
 		mat.roughness_texture = texture("res://assets/materials/%s_roughness.jpg" % prefix)
 		mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
-		mat.uv1_scale = Vector3.ONE * (0.23 if kind == "asphalt" else (0.25 if kind == "ground" else 0.42))
+		mat.uv1_scale = Vector3.ONE / float(maps[kind][0])
+		mat.roughness = 1.0
 
 	elif kind in ["metal", "paint"]:
 		mat.metallic = 0.78 if kind == "metal" else 0.35
@@ -60,11 +66,5 @@ static func get_surface(kind: String, tint: Color = Color.WHITE) -> StandardMate
 		tex.color_ramp = gradient
 		mat.albedo_texture = tex
 		mat.uv1_scale = Vector3.ONE * 2.8
-	elif kind == "wood":
-		mat.albedo_color = tint
-		mat.normal_enabled = true
-		mat.normal_texture = texture("res://assets/materials/concrete_normal.jpg")
-		mat.normal_scale = 0.18
-		mat.uv1_scale = Vector3(1, 0.07, 1)
 	cache[key] = mat
 	return mat

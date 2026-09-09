@@ -14,7 +14,7 @@ static func build(x: float, z: float, tint: Color, title: String) -> Node3D:
 	var workshop := "MOTOR" in title
 	var residence := "RELAY" in title
 	var render_tint := tint.lerp(Color("dad8cb"), 0.36)
-	batch.bevel_box(Vector3(0, 0.055, 0), Vector3(9.08, 0.11, 11.08), "concrete", Color("a29c8d"), 0.025)
+	batch.bevel_box(Vector3(0, 0.055, 0), Vector3(9.08, 0.11, 11.08), "floor", Color("c7c4bc"), 0.025)
 	# These four wall runs align exactly with the existing collision shell.
 	_facade(batch, Vector3(0, 0, 5.5), 0, 9.0, 3.2, render_tint, tint, shop, residence)
 	_facade(batch, Vector3(0, 0, -5.5), PI, 9.0, 3.2, render_tint, tint, false, residence)

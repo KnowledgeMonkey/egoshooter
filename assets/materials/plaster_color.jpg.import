@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cl46varcl50li"
-path.bptc="res://.godot/imported/concrete_roughness.jpg-41b2c6e964e915d88cbe9fcf351a8fc4.bptc.ctex"
+uid="uid://dddepxr0lujf2"
+path.bptc="res://.godot/imported/plaster_color.jpg-3cb5effb398fc6e88ec1719b3a697f84.bptc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/materials/concrete_roughness.jpg"
-dest_files=["res://.godot/imported/concrete_roughness.jpg-41b2c6e964e915d88cbe9fcf351a8fc4.bptc.ctex"]
+source_file="res://assets/materials/plaster_color.jpg"
+dest_files=["res://.godot/imported/plaster_color.jpg-3cb5effb398fc6e88ec1719b3a697f84.bptc.ctex"]
 
 [params]
 

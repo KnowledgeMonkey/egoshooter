@@ -19,6 +19,8 @@ Bei einem Startfehler zeigt die EXE eine Meldung mit dem Diagnoseordner `logs/`.
 
 **Grafik-Update:** Relay District besitzt jetzt modellierte Fassaden und Fahrzeuge, taktische Spielfiguren, neue Hände, lokale PBR-Oberflächen und einen HDR-Himmel mit warmer Sonnenbeleuchtung. Die Petrol-/Sand-/Metallfarben bleiben erhalten. Unter **SETTINGS → Grafik** zwischen **Performance, Hoch und Sehr hoch** wählen; **F11** wechselt ins Vollbild. Standard ist Hoch mit dem Forward+-Renderer. Änderungen, Prüfstand und Grenzen: **[Grafiküberarbeitung](docs/GRAPHICS.md)**.
 
+**4K-Texturen:** Eigene hochauflösende PBR-Sätze für Asphalt, Putz, Beton, Pflaster, Holz und Innenböden, mit Mipmaps und maßstäblicher Darstellung. Details: [4K-Oberflächen](docs/TEXTURES-4K.md).
+
 **Map-Erweiterung:** Die Arena misst jetzt **90 × 128 Meter**. Alle acht Hauptgebäude besitzen **Erdgeschoss, begehbares Obergeschoss und ein erreichbares Dach**. Innen- und Außentreppen führen nach oben; die offenen Fenster im Obergeschoss lassen Schüsse durch. Dachbrüstungen, Sichtschutz und Spawn-Unterstände ergänzen die bisherigen Deckungen. Zugänge, Bilder und Tests: **[Kampfgebiet-Erweiterung](docs/WAR-DISTRICT.md)**; ursprünglicher Etagenaufbau: [Größere Karte und Etagen](docs/MAP-EXPANSION.md).
 
 **Bot-Schwierigkeit:** Unter HOST GAME zwischen **Rekrut, Soldat, Veteran und Elite** wählen. Standard ist der einsteigerfreundliche Rekrut. Alternativ SETTINGS im Hauptmenü oder als Host während eines Matches öffnen: Änderungen wirken sofort. Die Stufe verändert Reaktion, Wahrnehmungsreichweite, Zielgenauigkeit und Feuerpausen; HP und Waffenschaden bleiben gleich.

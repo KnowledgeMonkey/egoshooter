@@ -39,10 +39,15 @@ func run() -> void:
 	create_timer(30).timeout.connect(func(): quit(1))
 	var stage := Node3D.new()
 	root.add_child(stage)
-	for kind in ["asphalt", "concrete", "ground", "paving"]:
+	for kind in ["asphalt", "concrete", "ground", "paving", "plaster", "wood", "floor"]:
 		var mat := UrbanMaterials.get_surface(kind)
 		check(mat.albedo_texture != null and mat.normal_texture != null and mat.roughness_texture != null, kind + " has local PBR maps")
-		check(mat.albedo_texture.get_width() >= 1024, kind + " texture resolution >= 1K")
+		var resolution := 1024 if kind == "ground" else 4096
+		for map in [mat.albedo_texture, mat.normal_texture, mat.roughness_texture]:
+			check(map.get_width() == resolution and map.get_height() == resolution, kind + " PBR map resolution")
+			check(map.get_image().has_mipmaps(), kind + " PBR map has mipmaps")
+	check(UrbanMaterials.get_surface("plaster").albedo_texture != UrbanMaterials.get_surface("concrete").albedo_texture, "plaster uses its own surface")
+	check(UrbanMaterials.get_surface("wood").normal_texture != UrbanMaterials.get_surface("concrete").normal_texture, "wood uses real wood normals")
 	check(load("res://assets/sky/relay_clouds.hdr").get_width() == 2048, "bundled 2K HDR panorama loads")
 	var objects := [UrbanArchitecture.build(-11, -18, Color("337f80"), "RELAY / 01"),
 		UrbanArchitecture.build(11, 18, Color("c59857"), "ATELIER / 04"),

@@ -26,7 +26,7 @@ internal static class Updater
             string stage = null;
             try
             {
-                status("Suche nach Updates auf GitHub ...");
+                status("Suche nach Updates...");
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 string json;
                 if (fetchVersion != null) json = fetchVersion();

@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cl46varcl50li"
-path.bptc="res://.godot/imported/concrete_roughness.jpg-41b2c6e964e915d88cbe9fcf351a8fc4.bptc.ctex"
+uid="uid://imsymgtimy8j"
+path.bptc="res://.godot/imported/floor_roughness.jpg-b9f45efa04182341b61d7d2fbaa379c3.bptc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/materials/concrete_roughness.jpg"
-dest_files=["res://.godot/imported/concrete_roughness.jpg-41b2c6e964e915d88cbe9fcf351a8fc4.bptc.ctex"]
+source_file="res://assets/materials/floor_roughness.jpg"
+dest_files=["res://.godot/imported/floor_roughness.jpg-b9f45efa04182341b61d7d2fbaa379c3.bptc.ctex"]
 
 [params]
 

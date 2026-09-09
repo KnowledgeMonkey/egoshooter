@@ -1,0 +1,170 @@
+[
+  {
+    "dimensions": [
+      2099.9999046325684,
+      2099.9999046325684
+    ],
+    "files": [
+      {
+        "size": 14073027,
+        "md5": "2557f0739fe3f379167b9911843115eb",
+        "file": "asphalt_color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_diff_4k.jpg"
+      },
+      {
+        "size": 17605037,
+        "md5": "e30d79324422bb09c8f9a5983d3602a8",
+        "file": "asphalt_normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_nor_gl_4k.jpg"
+      },
+      {
+        "size": 11455865,
+        "md5": "72d5a5cc90d6c675661f1bf4e47785c2",
+        "file": "asphalt_roughness.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/clean_asphalt/clean_asphalt_rough_4k.jpg"
+      }
+    ],
+    "id": "clean_asphalt",
+    "prefix": "asphalt"
+  },
+  {
+    "dimensions": [
+      2710.0000381469727,
+      2710.0000381469727
+    ],
+    "files": [
+      {
+        "size": 11173378,
+        "md5": "1dd6f4682c932eceabd934a1b2997fe7",
+        "file": "concrete_color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_wall_008/concrete_wall_008_diff_4k.jpg"
+      },
+      {
+        "size": 9299355,
+        "md5": "33a8d5b8f3432305444707595fb3e679",
+        "file": "concrete_normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_wall_008/concrete_wall_008_nor_gl_4k.jpg"
+      },
+      {
+        "size": 5833954,
+        "md5": "a2a8f3058b546087c7068f307e56dd9d",
+        "file": "concrete_roughness.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_wall_008/concrete_wall_008_rough_4k.jpg"
+      }
+    ],
+    "id": "concrete_wall_008",
+    "prefix": "concrete"
+  },
+  {
+    "files": [
+      {
+        "size": 18649578,
+        "md5": "8fe4b94b64218ff36cabf4ee1396533e",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_floor/concrete_floor_diff_4k.jpg",
+        "file": "floor_color.jpg"
+      },
+      {
+        "size": 15448497,
+        "md5": "68a1312087a155c07090c73a339765ba",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_floor/concrete_floor_nor_gl_4k.jpg",
+        "file": "floor_normal.jpg"
+      },
+      {
+        "size": 10161128,
+        "md5": "7359a8f1667943748992be31cd818ccf",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/concrete_floor/concrete_floor_rough_4k.jpg",
+        "file": "floor_roughness.jpg"
+      }
+    ],
+    "dimensions": [
+      2079.9996852874756,
+      2079.9996852874756
+    ],
+    "prefix": "floor",
+    "id": "concrete_floor"
+  },
+  {
+    "dimensions": [
+      3099.9999046325684,
+      3099.9999046325684
+    ],
+    "files": [
+      {
+        "size": 17225792,
+        "md5": "331177b0d18889ac91555d7be7f85dad",
+        "file": "paving_color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/pavement_04/pavement_04_diff_4k.jpg"
+      },
+      {
+        "size": 7336888,
+        "md5": "a0ab68692f2ecead999d4cc78f063595",
+        "file": "paving_normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/pavement_04/pavement_04_nor_gl_4k.jpg"
+      },
+      {
+        "size": 5379807,
+        "md5": "2d0d2d397e9fb5b347ff5acc47b46434",
+        "file": "paving_roughness.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/pavement_04/pavement_04_rough_4k.jpg"
+      }
+    ],
+    "id": "pavement_04",
+    "prefix": "paving"
+  },
+  {
+    "dimensions": [
+      2000,
+      2000
+    ],
+    "files": [
+      {
+        "size": 12556766,
+        "md5": "7db04e0e455152cf79e112f5852c973d",
+        "file": "plaster_color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/painted_plaster_wall/painted_plaster_wall_diff_4k.jpg"
+      },
+      {
+        "size": 16230301,
+        "md5": "efc61a0064fcb8b674ca817acd2e0555",
+        "file": "plaster_normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/painted_plaster_wall/painted_plaster_wall_nor_gl_4k.jpg"
+      },
+      {
+        "size": 6052444,
+        "md5": "a72a54cfc30558de814c0e4b1ad27916",
+        "file": "plaster_roughness.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/painted_plaster_wall/painted_plaster_wall_rough_4k.jpg"
+      }
+    ],
+    "id": "painted_plaster_wall",
+    "prefix": "plaster"
+  },
+  {
+    "dimensions": [
+      1499.999761581421,
+      1499.999761581421
+    ],
+    "files": [
+      {
+        "size": 9032189,
+        "md5": "091858dbf6e1964b9c079b173c048b58",
+        "file": "wood_color.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/wood_planks/wood_planks_diff_4k.jpg"
+      },
+      {
+        "size": 12680748,
+        "md5": "d628eddb8486b8bc192bdbe14e505ef1",
+        "file": "wood_normal.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/wood_planks/wood_planks_nor_gl_4k.jpg"
+      },
+      {
+        "size": 4169187,
+        "md5": "47e487c427ba18802676827db7946feb",
+        "file": "wood_roughness.jpg",
+        "url": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/wood_planks/wood_planks_rough_4k.jpg"
+      }
+    ],
+    "id": "wood_planks",
+    "prefix": "wood"
+  }
+]

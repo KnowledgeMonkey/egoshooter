@@ -31,10 +31,10 @@ func part(at: Vector3, size: Vector3, kind: String, tint: Color, solid: bool = t
 
 func _slab(height: float, left: float, right: float, near: float, far: float) -> void:
 	# Rectangle around a real stairwell opening; no invisible ceiling over stairs.
-	part(Vector3((-4.9 + left) / 2, height - 0.15, 0), Vector3(left + 4.9, 0.3, 11.8), "concrete", TRIM)
-	part(Vector3((right + 4.9) / 2, height - 0.15, 0), Vector3(4.9 - right, 0.3, 11.8), "concrete", TRIM)
-	part(Vector3((left + right) / 2, height - 0.15, (-5.9 + near) / 2), Vector3(right - left, 0.3, near + 5.9), "concrete", TRIM)
-	part(Vector3((left + right) / 2, height - 0.15, (far + 5.9) / 2), Vector3(right - left, 0.3, 5.9 - far), "concrete", TRIM)
+	part(Vector3((-4.9 + left) / 2, height - 0.15, 0), Vector3(left + 4.9, 0.3, 11.8), "floor", TRIM)
+	part(Vector3((right + 4.9) / 2, height - 0.15, 0), Vector3(4.9 - right, 0.3, 11.8), "floor", TRIM)
+	part(Vector3((left + right) / 2, height - 0.15, (-5.9 + near) / 2), Vector3(right - left, 0.3, near + 5.9), "floor", TRIM)
+	part(Vector3((left + right) / 2, height - 0.15, (far + 5.9) / 2), Vector3(right - left, 0.3, 5.9 - far), "floor", TRIM)
 
 func _wall_box(axis: int, fixed: float, along: float, y: float, length: float, height: float, kind: String, tint: Color, solid: bool = true) -> void:
 	var pos := Vector3(along, y, fixed) if axis == 0 else Vector3(fixed, y, along)
@@ -64,7 +64,7 @@ func _flight(x: float, first_z: float, direction: float, bottom: float, exterior
 		var height := (i + 1) * LEVEL / 19.0
 		var z := first_z + direction * i * 0.4
 		# Thin connected treads form a real stair underside, not a filled cuboid.
-		part(Vector3(x, bottom + height - 0.12, z), Vector3(1.8, 0.24, 0.4), "concrete", Color("8e9790"))
+		part(Vector3(x, bottom + height - 0.12, z), Vector3(1.8, 0.24, 0.4), "floor", Color("8e9790"))
 		part(Vector3(x, bottom + height + 0.008, z - direction * 0.16), Vector3(1.78, 0.016, 0.065), "metal", TRIM, false)
 		if exterior:
 			for side in [-1, 1]:
@@ -93,8 +93,8 @@ func _build() -> void:
 	# Exterior switchback: ground -> upper door -> roof, an independent counter-route.
 	_flight(outward * 6.0, -3.8, 1, 0, true)
 	_flight(outward * 8.3, 3.8, -1, LEVEL, true)
-	part(Vector3(outward * 6.4, LEVEL - 0.15, 4.6), Vector3(5.0, 0.3, 2.0), "concrete", TRIM)
-	part(Vector3(outward * 6.4, ROOF - 0.15, -4.6), Vector3(5.0, 0.3, 2.0), "concrete", TRIM)
+	part(Vector3(outward * 6.4, LEVEL - 0.15, 4.6), Vector3(5.0, 0.3, 2.0), "floor", TRIM)
+	part(Vector3(outward * 6.4, ROOF - 0.15, -4.6), Vector3(5.0, 0.3, 2.0), "floor", TRIM)
 	for y in [LEVEL, ROOF]:
 		var z := 5.58 if y == LEVEL else -5.58
 		part(Vector3(outward * 6.4, y + 0.48, z), Vector3(5.0, 0.96, 0.13), "metal", FRAME)
