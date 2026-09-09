@@ -59,7 +59,10 @@ static func apply(model: Node3D, design: Dictionary) -> void:
 		if part == "magazine": group = model.get_node_or_null("Magazine")
 		if part == "bolt": group = model.get_node_or_null("Bolt")
 		if group == null: continue
-		for child in group.get_children():
+		var meshes := group.get_children()
+		if part == "optic" and model.has_node("Frame/FactoryOptic"):
+			meshes.append_array(model.get_node("Frame/FactoryOptic").get_children())
+		for child in meshes:
 			if not child is MeshInstance3D: continue
 			if not child.has_meta("factory_material"): child.set_meta("factory_material", child.material_override)
 			var factory: StandardMaterial3D = child.get_meta("factory_material")
@@ -69,14 +72,18 @@ static func apply(model: Node3D, design: Dictionary) -> void:
 				finish.albedo_color = design[part]
 				child.material_override = finish
 	var lettering := model.get_node_or_null("CustomLettering")
+	var pistol := int(model.get_meta("weapon_index", 0)) == 4
+	if lettering == null: lettering = model.get_node_or_null("Bolt/CustomLettering")
 	if lettering == null:
 		lettering = Node3D.new()
 		lettering.name = "CustomLettering"
-		model.add_child(lettering)
+		if pistol: model.get_node("Bolt").add_child(lettering)
+		else: model.add_child(lettering)
 		for side in [-1, 1]:
 			var label := Label3D.new()
 			label.name = "Text" + str(side)
-			label.position = Vector3(side * 0.082, 0.018, -0.02)
+			var surface_x := 0.0193 if pistol else (0.0466 if int(model.get_meta("weapon_index", 0)) == 7 else 0.036)
+			label.position = Vector3(side * surface_x, 0.045 if pistol else 0.018, -0.07)
 			label.rotation.y = side * PI / 2
 			label.pixel_size = 0.00035
 			label.font_size = 48
@@ -85,7 +92,7 @@ static func apply(model: Node3D, design: Dictionary) -> void:
 			lettering.add_child(label)
 	for label: Label3D in lettering.get_children():
 		label.text = design.get("text", "")
-		label.pixel_size = minf(0.00035, 0.20 / maxf(1, label.text.length() * 28))
+		label.pixel_size = minf(0.00018 if pistol else 0.00035, (0.09 if pistol else 0.15) / maxf(1, label.text.length() * 28))
 		label.modulate = design.get("text_color", Color.WHITE)
 
 static func loadout_designs(primary: int) -> Dictionary:

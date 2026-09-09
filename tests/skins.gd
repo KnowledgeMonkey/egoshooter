@@ -27,9 +27,10 @@ func run() -> void:
 		WeaponSkins.apply(a, {"receiver": Color.RED, "magazine": Color.BLUE, "text": "RELAY / 01"})
 		check(stock.material_override.albedo_color == Color.RED, "weapon %s receiver accepts custom color" % index)
 		check(b.get_node("Frame/receiver").get_child(0).material_override == factory, "weapon %s skin does not mutate another instance or cache" % index)
-		check(a.get_node("CustomLettering").get_child(0).text == "RELAY / 01", "weapon %s displays literal custom text" % index)
+		var lettering_path := "Bolt/CustomLettering" if index == 4 else "CustomLettering"
+		check(a.get_node(lettering_path).get_child(0).text == "RELAY / 01", "weapon %s displays literal custom text" % index)
 		WeaponSkins.apply(a, {})
-		check(stock.material_override == factory and a.get_node("CustomLettering").get_child(0).text == "", "weapon %s reset restores factory appearance" % index)
+		check(stock.material_override == factory and a.get_node(lettering_path).get_child(0).text == "", "weapon %s reset restores factory appearance" % index)
 		a.queue_free()
 		b.queue_free()
 	WeaponSkins.set_design(6, {"receiver": Color.CYAN, "text": "[b]Literal[/b]", "text_color": Color.YELLOW})

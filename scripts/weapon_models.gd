@@ -10,6 +10,7 @@ static func build(index: int) -> Node3D:
 		return cache[index].instantiate()
 	var root := Node3D.new()
 	root.name = "WeaponModel"
+	root.set_meta("weapon_index", index)
 	var frame := Node3D.new()
 	frame.name = "Frame"
 	root.add_child(frame)
@@ -77,6 +78,11 @@ static func barrel(parent: Node3D, z: float, length: float, radius: float = 0.01
 		G.block(parent, Vector3(radius * 1.6, 0.016, tip - 0.004 - i * 0.012), Vector3(0.002, 0.014, 0.006), "rubber")
 
 static func optic(parent: Node3D, z: float, scope: bool = false) -> void:
+	# Keep replaceable optics separate from rails, carry handles and receiver parts.
+	var mount := Node3D.new()
+	mount.name = "FactoryOptic"
+	parent.add_child(mount)
+	parent = mount
 	if scope:
 		for at in [z - 0.075, z + 0.06]:
 			G.block(parent, Vector3(0, 0.077, at), Vector3(0.042, 0.032, 0.027), "steel")

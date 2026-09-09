@@ -53,10 +53,14 @@ static func clean(value: Variant) -> Array:
 
 static func apply(model: Node3D, value: Variant) -> void:
 	var old := model.get_node_or_null("Stickers")
-	if old: model.remove_child(old); old.queue_free()
+	if old == null: old = model.get_node_or_null("Bolt/Stickers")
+	if old: old.get_parent().remove_child(old); old.queue_free()
 	var group := Node3D.new()
 	group.name = "Stickers"
-	model.add_child(group)
+	var index := int(model.get_meta("weapon_index", 0))
+	var pistol := index == 4
+	if pistol: model.get_node("Bolt").add_child(group)
+	else: model.add_child(group)
 	var ids := clean(value)
 	for i in 3:
 		var tex := texture(ids[i])
@@ -64,9 +68,11 @@ static func apply(model: Node3D, value: Variant) -> void:
 		for side in [-1, 1]:
 			var sticker := MeshInstance3D.new()
 			var mesh := QuadMesh.new()
-			mesh.size = Vector2(0.07, 0.07 * tex.get_height() / tex.get_width())
+			var width := 0.028 if pistol else 0.043
+			mesh.size = Vector2(width, width * tex.get_height() / tex.get_width())
 			sticker.mesh = mesh
-			sticker.position = Vector3(side * 0.083, 0.012, 0.06 - i * 0.1)
+			var surface_x := 0.0192 if pistol else (0.0465 if index == 7 else 0.0358)
+			sticker.position = Vector3(side * surface_x, 0.036 if pistol else 0.0, 0.015 - i * (0.065 if pistol else 0.075))
 			sticker.rotation.y = side * PI / 2
 			var mat := StandardMaterial3D.new()
 			mat.albedo_texture = tex

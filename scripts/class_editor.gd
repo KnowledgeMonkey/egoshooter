@@ -103,7 +103,7 @@ func refresh() -> void:
 		button.custom_minimum_size.x = 220
 		button.modulate = Color("e8ca89") if i == slot else Color.WHITE
 	showcase.select_weapon(weapon)
-	showcase.camera.size = 0.32 if weapon == 4 else 0.68
+	showcase.camera.size = 0.48 if weapon == 4 else (0.95 if weapon in [3, 5, 6] else 0.75)
 	update_model()
 	rebuild_options()
 
@@ -134,7 +134,9 @@ func rebuild_options() -> void:
 			var choice := OptionButton.new()
 			for name in WeaponAttachments.OPTIONS[key]: choice.add_item(name)
 			choice.selected = d.attachments.get(key, 0); options_panel.add_child(choice)
+			if weapon == 4 and key == "stock": choice.selected = 0; choice.disabled = true
 			var hint := add_label(options_panel, WeaponAttachments.HELP[key][choice.selected]); hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART; hint.custom_minimum_size.x = 310; hint.modulate = Color("97b6af")
+			if weapon == 4 and key == "stock": hint.text = "P12 besitzt keinen austauschbaren Schaft."
 			choice.item_selected.connect(func(value): d.attachments[key] = value; hint.text = WeaponAttachments.HELP[key][value]; update_model())
 	elif tabs.selected == 1:
 		for i in WeaponSkins.PARTS.size():
