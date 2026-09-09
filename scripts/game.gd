@@ -55,6 +55,7 @@ func _ready() -> void:
 	dedicated = "--dedicated" in OS.get_cmdline_user_args()
 	if not headless:
 		PlayerSettings.restore(self)
+	ClassLoadouts.restore(loadout)
 	history = CombatHistory.new()
 	history.game = self
 	add_child(history)
@@ -196,10 +197,10 @@ func join(address: String) -> void:
 
 func _connected() -> void:
 	local_id = multiplayer.get_unique_id()
-	register_player.rpc_id(1, nickname, loadout, WeaponSkins.loadout_designs(loadout))
+	register_player.rpc_id(1, nickname, loadout, WeaponSkins.loadout_designs(loadout), WeaponStickers.bundle(WeaponSkins.loadout_designs(loadout)))
 
 @rpc("any_peer", "call_remote", "reliable")
-func register_player(display_name: String, selected: int, cosmetics: Dictionary = {}) -> void:
+func register_player(display_name: String, selected: int, cosmetics: Dictionary = {}, sticker_files: Dictionary = {}) -> void:
 	if not is_host or not active:
 		return
 	var id := multiplayer.get_remote_sender_id()
@@ -218,6 +219,12 @@ func register_player(display_name: String, selected: int, cosmetics: Dictionary 
 			break
 	var joined := add_player(id, display_name.strip_edges().left(20), false, Arsenal.primary_id(selected))
 	joined.skin_designs = WeaponSkins.clean_loadout(cosmetics, joined.primary)
+	for index in [joined.primary, 4]: joined.magazines[index] = WeaponAttachments.stats(index, joined.skin_designs.get(str(index), {})).mag
+	var accepted_stickers := WeaponStickers.accept(sticker_files)
+	if not accepted_stickers.is_empty(): receive_stickers.rpc(accepted_stickers)
+	for member: Fighter in players.values():
+		var files := WeaponStickers.bundle(member.skin_designs)
+		if not files.is_empty(): receive_stickers.rpc_id(id, files)
 	welcome.rpc_id(id, config)
 	print("JOIN accepted ", id, " roster=", players.size())
 
@@ -400,6 +407,11 @@ func visible_between(a: Vector3, b: Vector3, exclude: Array = []) -> bool:
 	return get_world_3d().direct_space_state.intersect_ray(ray).is_empty()
 
 func respawn(p: Fighter) -> void:
+	if not p.pending_class.is_empty():
+		p.primary = p.pending_class.primary
+		p.skin_designs = p.pending_class.skins
+		p.pending_class = {}
+		p.world_weapon = -1
 	var best := arena.spawn_points[0]
 	var best_score := -INF
 	for candidate in arena.spawn_points:
@@ -644,7 +656,7 @@ func fx(kind: String, pos: Vector3, id: int, variant: int) -> void:
 	audio.play_at(kind, pos, id == local_id, variant)
 	if kind == "shot" and id == local_id and players.has(id):
 		var p: Fighter = players[id]
-		p.pitch = minf(1.5, p.pitch + float(Arsenal.DATA[variant].recoil) * (0.7 if p.aiming else 1.0))
+		p.pitch = minf(1.5, p.pitch + float(p.weapon_stats().recoil) * (0.7 if p.aiming else 1.0))
 		# WeaponView drives the visual recoil spring from confirmed ammunition changes.
 	if kind == "flash" and not headless:
 		CombatVisuals.flash(effects, pos)
@@ -729,3 +741,33 @@ func nuke_effect() -> void:
 			CombatVisuals.puff(effects, point + Vector3.UP * 14 + direction * 12, 16, "smoke", 7, direction * 18 + Vector3.UP * 12)
 			CombatVisuals.puff(effects, point + direction * 5, 12, "fireball", 2, direction * 12 + Vector3.UP * 8)
 		audio.play_at("explosion", menu_camera.global_position, true)
+
+
+
+@rpc("authority", "call_remote", "reliable")
+func receive_stickers(files: Dictionary) -> void:
+	WeaponStickers.accept(files)
+	WeaponSkins.revision += 1
+	for member: Fighter in players.values(): member.world_weapon = -1
+
+func queue_local_class() -> void:
+	if not active: return
+	var skins := WeaponSkins.loadout_designs(loadout)
+	if is_host:
+		if players.has(local_id): players[local_id].pending_class = {"primary": loadout, "skins": skins}
+		var files := WeaponStickers.bundle(skins)
+		if not files.is_empty(): receive_stickers.rpc(files)
+	else:
+		request_class.rpc_id(1, loadout, skins, WeaponStickers.bundle(skins))
+
+@rpc("any_peer", "call_remote", "reliable")
+func request_class(selected: int, cosmetics: Dictionary, files: Dictionary) -> void:
+	var id := multiplayer.get_remote_sender_id()
+	if not is_host or not players.has(id): return
+	var p: Fighter = players[id]
+	var now := Time.get_ticks_msec()
+	p.class_update_time = now
+	var primary := Arsenal.primary_id(selected)
+	p.pending_class = {"primary": primary, "skins": WeaponSkins.clean_loadout(cosmetics, primary)}
+	var accepted := WeaponStickers.accept(files)
+	if not accepted.is_empty(): receive_stickers.rpc(accepted)

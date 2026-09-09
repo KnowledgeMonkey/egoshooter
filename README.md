@@ -12,7 +12,7 @@ Aktuelle Korrekturen und Tests: **[Codebase-Audit vom 09.09.2026](docs/AUDIT-202
 
 1. **`Start-Game.exe` doppelklicken.** Im Git-Projekt startet der Windows-Starter die lokalen Dateien. In verteilten Spielkopien ohne `.git` prüft er GitHub auf Updates. Beide Wege prüfen zuerst den Godot-Import. Die portable Engine liegt unter `tools/godot/`. `Start-Game.cmd` leitet ebenfalls an die EXE weiter.
 2. **PLAY** startet ein lokales Team-Deathmatch mit sieben Bots.
-3. Unter **LOADOUT** vorher Namen und Primärwaffe wählen.
+3. Unter **LOADOUT** eigene Klassen, Vorlagen, Aufsätze, Bauteilfarben und Bildsticker konfigurieren. **Speichern & Ausrüsten** aktiviert die Klasse; im Match gilt sie ab dem nächsten Spawn. [Klasseneditor und Waffenwerkstatt](docs/CLASS-EDITOR.md).
 4. **ESC** öffnet das Menü; das Match läuft dabei weiter.
 
 Bei einem Startfehler zeigt die EXE eine Meldung mit dem Diagnoseordner `logs/`. Bitte die EXE **im Projektordner lassen**. Ein erster Import kann einige Sekunden dauern. Technische Details und aktuelle Waffenbilder: **[Redesign und Startkorrektur](docs/REDESIGN.md)**.

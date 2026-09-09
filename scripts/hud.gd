@@ -112,7 +112,7 @@ func render() -> void:
 				canvas.draw_arc(center, 95, angle - 0.32, angle + 0.32, 16, Color(1, 0.24, 0.12, hurt_time / 0.9), 6, true)
 		if elimination_time > 0:
 			text(Vector2(650, 580), "ELIMINIERT · " + elimination_name, 22, ORANGE)
-		if p.infinite_left <= 0 and p.magazines[p.weapon] <= maxi(1, int(Arsenal.DATA[p.weapon].mag) / 4) and p.reload_left <= 0:
+		if p.infinite_left <= 0 and p.magazines[p.weapon] <= maxi(1, int(p.weapon_stats().mag) / 4) and p.reload_left <= 0:
 			text(Vector2(707, 541), "R · NACHLADEN", 17, ORANGE)
 		if p.weapon == 3 and p.aim_blend > 0.92:
 			canvas.draw_circle(center, 970, Color(0.01, 0.015, 0.018, 0.98), false, 1370, true)

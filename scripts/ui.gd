@@ -213,27 +213,13 @@ func direct_menu() -> void:
 
 func loadout_menu() -> void:
 	page = "loadout"
-	clear("LOADOUT", "EIN AUFTRAG. DEINE AUSRÜSTUNG.")
-	text_field("player", "OPERATOR NAME", game.nickname)
-	var names := []
-	for i in Arsenal.PRIMARY_IDS:
-		names.append(Arsenal.DATA[i].name)
-	option("primary", "PRIMARY", names, Arsenal.PRIMARY_IDS.find(game.loadout))
-	var showcase := WeaponShowcase.new()
-	root.add_child(showcase)
-	showcase.select_weapon(game.loadout)
-	fields.primary.item_selected.connect(func(index): showcase.select_weapon(Arsenal.PRIMARY_IDS[index]))
-	button("P12 SIDEARM ANSEHEN   →", func(): showcase.select_weapon(4))
-	space(10)
-	label("SECONDARY     P12 SIDEARM\nLETHAL             2 × FRAG (G)\nTACTICAL        1 × FLASH (F)", 20)
-	label("9 PRIMÄRWAFFEN / P12 SEKUNDÄR\nM77: 1 Treffer / D58: Halbautomatik\nLM60: 60 Schuss / K16: hohe Kadenz\nB: FRONT-ENERGIESCHILD / 45 SEK.", 18, Color("93aaa9"))
-	button("WAFFEN-SKINS / FARBEN & TEXT", func(): skin_menu(Arsenal.PRIMARY_IDS[fields.primary.selected]))
-	button("SAVE & BACK                →", func():
-		game.nickname = fields.player.text.strip_edges().left(20)
-		game.loadout = Arsenal.PRIMARY_IDS[fields.primary.selected]
-		game.save_preferences()
-		main_menu())
-
+	clear("KLASSENEDITOR", "DEINE WAFFE. DEIN AUFTRAG.")
+	for child in root.get_children():
+		root.remove_child(child)
+		child.queue_free()
+	var editor := ClassEditor.new()
+	editor.ui = self
+	root.add_child(editor)
 func settings_menu() -> void:
 	page = "settings"
 	clear("SETTINGS", "BEWEGUNG / SICHT / AUDIO")

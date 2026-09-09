@@ -21,6 +21,8 @@ var deaths := 0
 var yaw := 0.0
 var pitch := 0.0
 var primary := 0
+var pending_class: Dictionary = {}
+var class_update_time := -10000
 var weapon := 0
 var magazines := Arsenal.ammunition()
 var reserves := Arsenal.ammunition(true)
@@ -162,7 +164,7 @@ func _process(delta: float) -> void:
 		camera.position.z = cos(shake_clock * 59) * 0.04 * blast_shake
 		camera.position.y = lerpf(camera.position.y, 1.0 if crouched else 1.65, minf(delta * 15, 1))
 		var sight_ready := aiming and reload_left <= 0 and melee_left <= 0 and mantle_left <= 0 and not rope_active
-		aim_blend = move_toward(aim_blend, 1.0 if sight_ready else 0.0, delta / float(WeaponHandling.DATA[weapon].ads))
+		aim_blend = move_toward(aim_blend, 1.0 if sight_ready else 0.0, delta / float(weapon_stats().ads))
 		var sight_mix := WeaponHandling.smooth(aim_blend)
 		var scope := 32.0 if weapon == 3 else 64.0
 		camera.fov = lerpf(game.base_fov, scope, sight_mix)
@@ -172,7 +174,7 @@ func _process(delta: float) -> void:
 		var hip := Vector3(0.17, -0.18 + bob, -0.22) if weapon != 4 else Vector3(0.18, -0.22 + bob, -0.43)
 		var gun_target := hip.lerp(Vector3(0, -sight_height, -0.20 if weapon != 4 else -0.36), sight_mix)
 		if reload_left > 0:
-			gun_target.y -= 0.10 * WeaponHandling.reload_pose(1 - reload_left / float(Arsenal.DATA[weapon].reload))
+			gun_target.y -= 0.10 * WeaponHandling.reload_pose(1 - reload_left / float(weapon_stats().reload))
 		gun.position = gun.position.lerp(gun_target, minf(delta * 16, 1))
 		if not game.headless:
 			gun.animate(self, delta)
@@ -207,7 +209,7 @@ func _physics_process(delta: float) -> void:
 		if reload_left > 0:
 			reload_left -= delta
 			if reload_left <= 0:
-				var need: int = mini(Arsenal.DATA[weapon].mag - magazines[weapon], reserves[weapon])
+				var need: int = mini(weapon_stats().mag - magazines[weapon], reserves[weapon])
 				magazines[weapon] += need
 				reserves[weapon] -= need
 		input_data.merge(queued_actions, true)
@@ -266,7 +268,7 @@ func move_character(delta: float) -> void:
 		speed = 3.1
 	if aiming:
 		speed *= 0.68
-	speed *= float(Arsenal.DATA[weapon].speed)
+	speed *= float(weapon_stats().speed)
 	var dir := Basis(Vector3.UP, yaw) * Vector3(axis.x, 0, axis.y)
 	if slide_left > 0:
 		speed = 10.8
@@ -327,6 +329,7 @@ func reset_at(pos: Vector3) -> void:
 	last_hurt = 0
 	weapon = primary
 	magazines = Arsenal.ammunition()
+	for index in [primary, 4]: magazines[index] = WeaponAttachments.stats(index, skin_designs.get(str(index), {})).mag
 	reserves = Arsenal.ammunition(true)
 	input_data = {}
 	queued_actions.clear()
@@ -348,6 +351,7 @@ func snapshot() -> Dictionary:
 		"flash": flash_left, "flashes": flashes, "radar": radar_left, "mantle": mantle_left, "life": life}
 
 func apply_snapshot(s: Dictionary) -> void:
+	primary = Arsenal.primary_id(int(s.primary))
 	var incoming := WeaponSkins.clean_loadout(s.get("skins", {}), primary)
 	if incoming != skin_designs:
 		skin_designs = incoming
@@ -397,3 +401,6 @@ func apply_snapshot(s: Dictionary) -> void:
 		velocity = Vector3.ZERO
 		mantle_left = 0
 	shape.disabled = hp <= 0
+
+func weapon_stats() -> Dictionary:
+	return WeaponAttachments.stats(weapon, skin_designs.get(str(weapon), {}))

@@ -53,6 +53,9 @@ func select_weapon(index: int) -> void:
 	camera.look_at(Vector3(0, -0.025, -0.22 if index != 4 else -0.12))
 
 func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP: camera.size = maxf(0.25, camera.size * 0.9)
+		if event.button_index == MOUSE_BUTTON_WHEEL_DOWN: camera.size = minf(2.0, camera.size * 1.1)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		drag = event.pressed
 	if event is InputEventMouseMotion and drag and model:

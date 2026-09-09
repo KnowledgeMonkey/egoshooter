@@ -30,8 +30,8 @@ func actions(p: Fighter) -> void:
 		p.reload_left = 0
 		p.cooldown = maxf(p.cooldown, float(WeaponHandling.DATA[p.weapon].equip))
 		cmd["switch"] = false
-	if p.infinite_left <= 0 and cmd.get("reload", false) and p.reload_left <= 0 and p.magazines[p.weapon] < Arsenal.DATA[p.weapon].mag and p.reserves[p.weapon] > 0:
-		p.reload_left = Arsenal.DATA[p.weapon].reload
+	if p.infinite_left <= 0 and cmd.get("reload", false) and p.reload_left <= 0 and p.magazines[p.weapon] < p.weapon_stats().mag and p.reserves[p.weapon] > 0:
+		p.reload_left = p.weapon_stats().reload
 		game.fx.rpc("reload", p.eye(), p.peer_id, 0)
 	cmd["reload"] = false
 	if cmd.get("grenade", false) and p.grenades > 0:
@@ -46,15 +46,15 @@ func actions(p: Fighter) -> void:
 		var dir := Arsenal.direction(p.yaw, p.pitch)
 		game.spawn_grenade(p.peer_id, p.eye() + dir * 0.6, dir * 16 + Vector3.UP * 4, "flash")
 	cmd["flash"] = false
-	if fire and (not Arsenal.DATA[p.weapon].get("semi", false) or pressed or p.bot) and p.cooldown <= 0 and p.reload_left <= 0:
+	if fire and (not p.weapon_stats().get("semi", false) or pressed or p.bot) and p.cooldown <= 0 and p.reload_left <= 0:
 		if p.magazines[p.weapon] > 0:
 			shoot(p)
 		else:
 			cmd["reload"] = true
 
 func shoot(p: Fighter) -> void:
-	p.radar_left = 1.5
-	var w: Dictionary = Arsenal.DATA[p.weapon]
+	p.radar_left = 0.0 if WeaponAttachments.clean(p.skin_designs.get(str(p.weapon), {}).get("attachments", {})).get("muzzle", 0) == 1 else 1.5
+	var w: Dictionary = p.weapon_stats()
 	p.shot_serial += 1
 	if p.infinite_left <= 0: p.magazines[p.weapon] -= 1
 	p.cooldown = w.rate

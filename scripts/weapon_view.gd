@@ -126,8 +126,9 @@ func animate(p: Fighter, dt: float) -> void:
 	if displayed != p.weapon or previous_life != p.life:
 		select_weapon(p.weapon)
 		previous_life = p.life
+		WeaponSkins.apply(model, p.skin_designs.get(str(p.weapon), {}))
 	if skin_revision != WeaponSkins.revision:
-		WeaponSkins.apply(model, WeaponSkins.get_design(p.weapon))
+		WeaponSkins.apply(model, p.skin_designs.get(str(p.weapon), {}))
 		skin_revision = WeaponSkins.revision
 	var profile: Dictionary = WeaponHandling.DATA[p.weapon]
 	var ammo: int = p.magazines[p.weapon]
@@ -160,7 +161,7 @@ func animate(p: Fighter, dt: float) -> void:
 	var sprinting := speed > 6.5 and not p.aiming and p.slide_left <= 0
 	var sprint_pose := Vector3(-0.13, 0.12, -0.19) if sprinting else Vector3.ZERO
 	rotation = rotation.lerp(sprint_pose + Vector3(-sway.y, -sway.x, -sway.x * 0.5), 1 - exp(-dt * 12))
-	var progress := 1 - p.reload_left / float(Arsenal.DATA[p.weapon].reload) if p.reload_left > 0 else 0.0
+	var progress := 1 - p.reload_left / float(p.weapon_stats().reload) if p.reload_left > 0 else 0.0
 	var reload_curve := WeaponHandling.reload_pose(progress)
 	var equip_curve := WeaponHandling.smooth(equip / float(profile.equip))
 	model.rotation = Vector3(recoil.y - reload_curve * 0.13, reload_curve * 0.12, reload_curve * 0.36 + equip_curve * 0.16)
@@ -170,7 +171,7 @@ func animate(p: Fighter, dt: float) -> void:
 	magazine.position = Vector3(-0.04 * removed, -removed * (0.06 if Arsenal.FAMILIES[p.weapon] == 2 else 0.23), 0)
 	magazine.rotation.x = removed * 0.22
 	var bolt := model.get_node("Bolt") as Node3D
-	var cycle := clampf(shot_age / float(Arsenal.DATA[p.weapon].rate), 0, 1)
+	var cycle := clampf(shot_age / float(p.weapon_stats().rate), 0, 1)
 	var manual_cycle := sin(clampf((cycle - 0.2) / 0.6, 0, 1) * PI) if cycle < 1 and p.weapon in [2, 3] else 0.0
 	bolt.position.z = kick * (0.04 if p.weapon == 4 else 0.025) + manual_cycle * 0.07
 	bolt.rotation.z = manual_cycle * 0.5 if p.weapon == 3 else 0.0

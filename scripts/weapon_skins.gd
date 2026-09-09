@@ -15,6 +15,8 @@ static func clean(value: Variant) -> Dictionary:
 			if is_finite(c.r) and is_finite(c.g) and is_finite(c.b): result[key] = Color(clampf(c.r, 0, 1), clampf(c.g, 0, 1), clampf(c.b, 0, 1), 1)
 	var words := str(value.get("text", "")).replace("\n", " ").replace("\r", " ").replace("\t", " ").left(32)
 	result.text = words
+	result.attachments = WeaponAttachments.clean(value.get("attachments", {}))
+	result.stickers = WeaponStickers.clean(value.get("stickers", []))
 	return result
 
 static func set_design(weapon: int, design: Dictionary) -> void:
@@ -50,6 +52,8 @@ static func split_frame(frame: Node3D) -> void:
 
 static func apply(model: Node3D, design: Dictionary) -> void:
 	design = clean(design)
+	WeaponAttachments.apply(model, design)
+	WeaponStickers.apply(model, design.get("stickers", []))
 	for part in PARTS:
 		var group := model.get_node_or_null("Frame/" + part)
 		if part == "magazine": group = model.get_node_or_null("Magazine")
