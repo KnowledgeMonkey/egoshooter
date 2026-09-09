@@ -27,6 +27,7 @@ var slide_lock := 0.0
 var last_hurt := 0.0
 var crouched := false
 var aiming := false
+var aim_blend := 0.0
 var input_data := {}
 var input_age := 0.0
 var sequence := 0
@@ -106,6 +107,7 @@ func _process(delta: float) -> void:
 	if not game.active:
 		return
 	if not game.is_host:
+		cooldown = maxf(0, cooldown - delta)
 		if is_local():
 			# Local movement prediction; authoritative snapshots correct drift.
 			var error := target_position - global_position
@@ -139,15 +141,18 @@ func _process(delta: float) -> void:
 		camera.position.x = sin(shake_clock * 73) * 0.08 * blast_shake
 		camera.position.z = cos(shake_clock * 59) * 0.04 * blast_shake
 		camera.position.y = lerpf(camera.position.y, 1.0 if crouched else 1.65, minf(delta * 15, 1))
+		var sight_ready := aiming and reload_left <= 0 and melee_left <= 0 and mantle_left <= 0
+		aim_blend = move_toward(aim_blend, 1.0 if sight_ready else 0.0, delta / float(WeaponHandling.DATA[weapon].ads))
+		var sight_mix := WeaponHandling.smooth(aim_blend)
 		var scope := 32.0 if weapon == 3 else 64.0
-		camera.fov = lerpf(camera.fov, scope if aiming else game.base_fov, minf(delta * 14, 1))
+		camera.fov = lerpf(game.base_fov, scope, sight_mix)
 		gun.visible = hp > 0
-		var bob := sin(Time.get_ticks_msec() * 0.012) * minf(velocity.length(), 7) * 0.0018
+		var bob := 0.0 # WeaponView owns movement so camera and weapon bob are not stacked.
 		var sight_height: float = [0.11, 0.11, 0.06, 0.108, 0.068][weapon]
 		var hip := Vector3(0.17, -0.18 + bob, -0.22) if weapon != 4 else Vector3(0.18, -0.22 + bob, -0.43)
-		var gun_target := Vector3(0, -sight_height, -0.20 if weapon != 4 else -0.36) if aiming else hip
+		var gun_target := hip.lerp(Vector3(0, -sight_height, -0.20 if weapon != 4 else -0.36), sight_mix)
 		if reload_left > 0:
-			gun_target.y -= 0.3
+			gun_target.y -= 0.10 * WeaponHandling.reload_pose(1 - reload_left / float(Arsenal.DATA[weapon].reload))
 		gun.position = gun.position.lerp(gun_target, minf(delta * 16, 1))
 		if not game.headless:
 			gun.animate(self, delta)
@@ -269,6 +274,7 @@ func reset_at(pos: Vector3) -> void:
 	killer_weapon = ""
 	respawn_left = 0
 	blast_shake = 0
+	aim_blend = 0
 	global_position = pos
 	target_position = pos
 	velocity = Vector3.ZERO
@@ -301,7 +307,7 @@ func snapshot() -> Dictionary:
 	return {"id": peer_id, "name": nickname, "team": team, "bot": bot, "primary": primary,
 		"p": global_position, "v": velocity, "yaw": yaw, "pitch": pitch, "hp": hp,
 		"kills": kills, "deaths": deaths, "weapon": weapon, "mag": magazines, "reserve": reserves,
-		"melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
+		"cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
 		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id,
 		"flash": flash_left, "flashes": flashes, "radar": radar_left, "mantle": mantle_left, "life": life}
 
@@ -317,6 +323,7 @@ func apply_snapshot(s: Dictionary) -> void:
 	weapon = s.weapon
 	magazines = s.mag
 	reserves = s.reserve
+	cooldown = float(s.get("cooldown", 0))
 	melee_left = float(s.get("melee", 0))
 	reload_left = s.reload
 	respawn_left = s.respawn

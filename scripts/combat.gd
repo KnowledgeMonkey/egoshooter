@@ -20,7 +20,7 @@ func actions(p: Fighter) -> void:
 	if cmd.get("switch", false):
 		p.weapon = 4 if p.weapon == p.primary else p.primary
 		p.reload_left = 0
-		p.cooldown = maxf(p.cooldown, 0.25)
+		p.cooldown = maxf(p.cooldown, float(WeaponHandling.DATA[p.weapon].equip))
 		cmd["switch"] = false
 	if cmd.get("reload", false) and p.reload_left <= 0 and p.magazines[p.weapon] < Arsenal.DATA[p.weapon].mag and p.reserves[p.weapon] > 0:
 		p.reload_left = Arsenal.DATA[p.weapon].reload

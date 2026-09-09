@@ -623,7 +623,7 @@ func fx(kind: String, pos: Vector3, id: int, variant: int) -> void:
 	if kind == "shot" and id == local_id and players.has(id):
 		var p: Fighter = players[id]
 		p.pitch = minf(1.5, p.pitch + float(Arsenal.DATA[variant].recoil) * (0.7 if p.aiming else 1.0))
-		p.gun.position.z += 0.065
+		# WeaponView drives the visual recoil spring from confirmed ammunition changes.
 	if kind == "flash" and not headless:
 		CombatVisuals.flash(effects, pos)
 	if kind == "explosion" and not headless:

@@ -107,7 +107,7 @@ func render() -> void:
 			text(Vector2(650, 580), "ELIMINIERT · " + elimination_name, 22, ORANGE)
 		if p.magazines[p.weapon] <= maxi(1, int(Arsenal.DATA[p.weapon].mag) / 4) and p.reload_left <= 0:
 			text(Vector2(707, 541), "R · NACHLADEN", 17, ORANGE)
-		if p.weapon == 3 and p.aiming:
+		if p.weapon == 3 and p.aim_blend > 0.92:
 			canvas.draw_circle(center, 970, Color(0.01, 0.015, 0.018, 0.98), false, 1370, true)
 			canvas.draw_circle(center, 285, Color("252d30"), false, 8, true)
 			canvas.draw_line(center - Vector2(280, 0), center + Vector2(280, 0), Color.BLACK, 1.4)
@@ -116,7 +116,7 @@ func render() -> void:
 				canvas.draw_line(center + Vector2(i * 35, -4), center + Vector2(i * 35, 4), Color.BLACK, 1)
 				canvas.draw_line(center + Vector2(-4, i * 35), center + Vector2(4, i * 35), Color.BLACK, 1)
 			canvas.draw_circle(center, 2, ORANGE)
-		var gap := 4.0 if p.aiming else 9.0 + p.velocity.length() * 0.6
+		var gap := lerpf(9.0 + p.velocity.length() * 0.6, 4.0, WeaponHandling.smooth(p.aim_blend))
 		for dir in [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]:
 			canvas.draw_line(center + dir * gap, center + dir * (gap + 6), WHITE, 1.5, true)
 		if hit_time > 0:

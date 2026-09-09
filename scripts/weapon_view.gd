@@ -7,6 +7,15 @@ var displayed := -1
 var last_ammo := -1
 var kick := 0.0
 var equip := 0.0
+var recoil := Vector2.ZERO
+var recoil_velocity := Vector2.ZERO
+var sway := Vector2.ZERO
+var previous_look := Vector2.ZERO
+var look_initialized := false
+var walk_clock := 0.0
+var muzzle: MeshInstance3D
+var muzzle_left := 0.0
+var previous_life := -1
 
 func select_weapon(index: int) -> void:
 	if model:
@@ -16,7 +25,30 @@ func select_weapon(index: int) -> void:
 	add_child(model)
 	displayed = index
 	last_ammo = -1
-	equip = 0.15
+	equip = float(WeaponHandling.DATA[index].equip)
+	recoil = Vector2.ZERO
+	recoil_velocity = Vector2.ZERO
+	muzzle_left = 0
+	look_initialized = false
+	muzzle = MeshInstance3D.new()
+	var flash := SphereMesh.new()
+	flash.radius = 0.025
+	flash.height = 0.13
+	flash.radial_segments = 8
+	flash.rings = 4
+	muzzle.mesh = flash
+	muzzle.position = Vector3(0, 0.01, WeaponHandling.DATA[index].muzzle)
+	muzzle.rotation.x = PI / 2
+	var glow := StandardMaterial3D.new()
+	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.albedo_color = Color(1, 0.77, 0.32)
+	glow.emission_enabled = true
+	glow.emission = Color(1, 0.52, 0.12)
+	glow.emission_energy_multiplier = 3
+	muzzle.material_override = glow
+	muzzle.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	muzzle.visible = false
+	model.add_child(muzzle)
 	if hands:
 		remove_child(hands)
 		hands.queue_free()
@@ -84,32 +116,56 @@ func build_hands(index: int) -> void:
 		finger(Vector3(-0.044, -0.049, support_z + 0.05), Vector3(-0.007, -0.041, support_z + 0.057), Vector3(0.028, -0.025, support_z + 0.041), 0.011)
 
 func animate(p: Fighter, dt: float) -> void:
-	if displayed != p.weapon:
+	if displayed != p.weapon or previous_life != p.life:
 		select_weapon(p.weapon)
+		previous_life = p.life
+	var profile: Dictionary = WeaponHandling.DATA[p.weapon]
 	var ammo: int = p.magazines[p.weapon]
+	var ads := WeaponHandling.smooth(p.aim_blend)
 	if last_ammo >= 0 and ammo < last_ammo:
+		var count := mini(last_ammo - ammo, 3)
+		recoil_velocity += Vector2(profile.kick, profile.rise) * float(profile.spring) * 2.1 * count * lerpf(1, 0.65, ads)
 		kick = 1
+		muzzle_left = 0.04
 	last_ammo = ammo
-	kick = move_toward(kick, 0, dt * 10)
+	var spring := WeaponHandling.settle(recoil, recoil_velocity, profile.spring, dt)
+	recoil = spring[0]
+	recoil_velocity = spring[1]
+	kick = move_toward(kick, 0, dt * 12)
 	equip = move_toward(equip, 0, dt)
-	var progress := 0.0
-	if p.reload_left > 0:
-		progress = 1.0 - p.reload_left / float(Arsenal.DATA[p.weapon].reload)
-	var reload_curve := sin(clampf(progress, 0, 1) * PI)
-	model.rotation = Vector3(kick * 0.035 - reload_curve * 0.08, 0, reload_curve * 0.22)
-	model.position = Vector3(0, -equip * 0.5, kick * 0.024)
+	muzzle_left = maxf(0, muzzle_left - dt)
+	muzzle.visible = muzzle_left > 0
+	var look := Vector2(p.yaw, p.pitch)
+	var turn := Vector2(wrapf(look.x - previous_look.x, -PI, PI), look.y - previous_look.y) if look_initialized else Vector2.ZERO
+	previous_look = look
+	look_initialized = true
+	var sway_target := (turn / maxf(dt, 0.001) * 0.012).limit_length(0.045) * float(profile.sway) * (1 - ads)
+	sway = sway.lerp(sway_target, 1 - exp(-dt * 12))
+	var speed := Vector2(p.velocity.x, p.velocity.z).length()
+	walk_clock += dt * minf(speed, 9) * 1.8
+	var bob := Vector3(sin(walk_clock) * 0.007, absf(cos(walk_clock)) * 0.009, 0) * minf(speed / 5.8, 1.4) * (1 - ads)
+	var sprinting := speed > 6.5 and not p.aiming and p.slide_left <= 0
+	var sprint_pose := Vector3(-0.13, 0.12, -0.19) if sprinting else Vector3.ZERO
+	rotation = rotation.lerp(sprint_pose + Vector3(-sway.y, -sway.x, -sway.x * 0.5), 1 - exp(-dt * 12))
+	var progress := 1 - p.reload_left / float(Arsenal.DATA[p.weapon].reload) if p.reload_left > 0 else 0.0
+	var reload_curve := WeaponHandling.reload_pose(progress)
+	var equip_curve := WeaponHandling.smooth(equip / float(profile.equip))
+	model.rotation = Vector3(recoil.y - reload_curve * 0.13, reload_curve * 0.12, reload_curve * 0.36 + equip_curve * 0.16)
+	model.position = bob + Vector3(0, -equip_curve * 0.20, recoil.x)
 	var magazine := model.get_node("Magazine") as Node3D
-	magazine.position.y = -reload_curve * (0.08 if p.weapon == 2 else 0.20)
-	magazine.rotation.x = reload_curve * 0.13
+	var removed := WeaponHandling.smooth((progress - 0.12) / 0.16) * (1 - WeaponHandling.smooth((progress - 0.50) / 0.18))
+	magazine.position = Vector3(-0.04 * removed, -removed * (0.06 if p.weapon == 2 else 0.23), 0)
+	magazine.rotation.x = removed * 0.22
 	var bolt := model.get_node("Bolt") as Node3D
-	bolt.position.z = kick * (0.04 if p.weapon == 4 else 0.025)
-	if p.weapon == 2:
-		bolt.position.z += reload_curve * 0.06
-	hands.rotation.z = reload_curve * 0.1
+	var cycle := 1 - clampf(p.cooldown / float(Arsenal.DATA[p.weapon].rate), 0, 1)
+	var manual_cycle := sin(clampf((cycle - 0.2) / 0.6, 0, 1) * PI) if p.cooldown > 0 and p.weapon in [2, 3] else 0.0
+	bolt.position.z = kick * (0.04 if p.weapon == 4 else 0.025) + manual_cycle * 0.07
+	bolt.rotation.z = manual_cycle * 0.5 if p.weapon == 3 else 0.0
+	if ammo == 0 and p.weapon == 4: bolt.position.z = 0.04
 	var strike := sin(clampf((0.65 - p.melee_left) / 0.65, 0, 1) * PI) if p.melee_left > 0 else 0.0
 	model.position += Vector3(-0.10, 0.025, -0.24) * strike
 	model.rotation += Vector3(-0.12, -0.3, 0.38) * strike
-	hands.position = Vector3(-0.10, 0.025, -0.24) * strike
-	hands.rotation.z += strike * 0.38
-	model.visible = not (p.weapon == 3 and p.aiming)
+	hands.position = model.position
+	hands.rotation = model.rotation
+	model.visible = not (p.weapon == 3 and p.aim_blend > 0.92)
 	hands.visible = model.visible
