@@ -48,7 +48,9 @@ func select_weapon(index: int) -> void:
 		model.queue_free()
 	model = WeaponModels.build(index)
 	stage.add_child(model)
-	camera.size = 0.43 if index == 4 else 0.8
+	WeaponSkins.apply(model, WeaponSkins.get_design(index))
+	camera.size = 0.43 if index == 4 else 1.05
+	camera.look_at(Vector3(0, -0.025, -0.22 if index != 4 else -0.12))
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:

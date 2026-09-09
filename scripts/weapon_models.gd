@@ -25,7 +25,7 @@ static func build(index: int) -> Node3D:
 		3: sniper(frame, magazine, bolt)
 		4: pistol(frame, magazine, bolt)
 	WeaponVariants.decorate(index, frame, magazine)
-	G.batch(frame)
+	WeaponSkins.split_frame(frame)
 	G.batch(magazine)
 	G.batch(bolt)
 	assign_owner(root, root)

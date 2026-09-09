@@ -123,6 +123,7 @@ func main_menu() -> void:
 	button("03    LOADOUT                  →", loadout_menu)
 	button("04    SETTINGS                   →", settings_menu)
 	button("05    QUIT", func(): get_tree().quit())
+	account_placeholder()
 	space(26)
 	label("PLAY startet lokal mit Bots.\nKein Konto. Kein externer Server.", 17, Color("93aaa9"))
 
@@ -226,7 +227,7 @@ func loadout_menu() -> void:
 	space(10)
 	label("SECONDARY     P12 SIDEARM\nLETHAL             2 × FRAG (G)\nTACTICAL        1 × FLASH (F)", 20)
 	label("9 PRIMÄRWAFFEN / P12 SEKUNDÄR\nM77: 1 Treffer / D58: Halbautomatik\nLM60: 60 Schuss / K16: hohe Kadenz\nB: FRONT-ENERGIESCHILD / 45 SEK.", 18, Color("93aaa9"))
-	space(10)
+	button("WAFFEN-SKINS / FARBEN & TEXT", func(): skin_menu(Arsenal.PRIMARY_IDS[fields.primary.selected]))
 	button("SAVE & BACK                →", func():
 		game.nickname = fields.player.text.strip_edges().left(20)
 		game.loadout = Arsenal.PRIMARY_IDS[fields.primary.selected]
@@ -288,3 +289,66 @@ func _process(dt: float) -> void:
 	if page == "browser" and refresh_clock > 1:
 		refresh_clock = 0
 		refresh_browser()
+
+func account_placeholder() -> void:
+	var box := PanelContainer.new()
+	box.position = Vector2(1030, 38)
+	box.size = Vector2(490, 165)
+	root.add_child(box)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 12)
+	box.add_child(content)
+	for words in ["ACCOUNT / BALD VERFÜGBAR", "Gastprofil · kein Konto verbunden", "GUTHABEN: —     /     SHOP: GESPERRT"]:
+		var line := Label.new()
+		line.text = words
+		line.add_theme_font_size_override("font_size", 20)
+		content.add_child(line)
+	var disabled := Button.new()
+	disabled.text = "ANMELDEN / REGISTRIEREN · PLATZHALTER"
+	disabled.disabled = true
+	content.add_child(disabled)
+
+func skin_menu(weapon: int) -> void:
+	page = "skins"
+	clear("WEAPON LAB", "LOKALE DESIGNS / KEIN SHOP ERFORDERLICH")
+	var names := []
+	for entry: Dictionary in Arsenal.DATA: names.append(entry.name)
+	option("skin_weapon", "WAFFE", names, weapon)
+	fields.skin_weapon.item_selected.connect(skin_menu)
+	var showcase := WeaponShowcase.new()
+	root.add_child(showcase)
+	showcase.select_weapon(weapon)
+	var design := WeaponSkins.get_design(weapon)
+	var parts := WeaponSkins.LABELS.duplicate()
+	parts.append("Beschriftung")
+	option("skin_part", "BAUTEIL / FARBE", parts)
+	var picker := ColorPickerButton.new()
+	picker.custom_minimum_size.y = 42
+	picker.edit_alpha = false
+	picker.color = design.get("receiver", Color("8c8064"))
+	panel.add_child(picker)
+	fields.skin_part.item_selected.connect(func(index):
+		var key: String = WeaponSkins.PARTS[index] if index < 8 else "text_color"
+		picker.color = design.get(key, Color.WHITE))
+	picker.color_changed.connect(func(color):
+		var index: int = fields.skin_part.selected
+		var key: String = WeaponSkins.PARTS[index] if index < 8 else "text_color"
+		design[key] = color
+		WeaponSkins.apply(showcase.model, design))
+	text_field("skin_text", "EIGENER TEXT / BIS 32 ZEICHEN", design.get("text", ""))
+	fields.skin_text.max_length = 32
+	fields.skin_text.text_changed.connect(func(words):
+		design.text = words
+		WeaponSkins.apply(showcase.model, design))
+	label("Mit der Maus die Vorschau drehen.\nFarben ändern keine Waffenwerte.", 16, Color("93aaa9"))
+	button("DESIGN SPEICHERN", func():
+		WeaponSkins.set_design(weapon, design)
+		if PlayerSettings.save(game) == OK:
+			message("Design lokal gespeichert. Für diese Waffe aktiv.")
+		else:
+			message("Design aktiv, konnte aber nicht dauerhaft gespeichert werden."))
+	button("WERKSDESIGN WIEDERHERSTELLEN", func():
+		WeaponSkins.set_design(weapon, {})
+		game.save_preferences()
+		skin_menu(weapon))
+	button("← ZURÜCK / UNGESPEICHERTES VERWERFEN", loadout_menu)

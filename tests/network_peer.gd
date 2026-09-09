@@ -17,6 +17,9 @@ var killcam := false
 var forced_kill := false
 var saw_killer := false
 var saw_respawn := false
+var saw_skin := false
+var saw_shield := false
+var requested_shield := false
 
 func _initialize() -> void:
 	is_server = "--server" in OS.get_cmdline_user_args()
@@ -34,6 +37,8 @@ func start() -> void:
 		game.host({"server_name": "Network test", "mode": "TDM", "max_players": 8, "bots": 7, "score_limit": 50, "time_limit": 600})
 	else:
 		game.nickname = "NetworkClient"
+		game.loadout = 9
+		WeaponSkins.set_design(9, {"receiver": Color.CYAN, "text": "LAN TEST"})
 		game.join("127.0.0.1:%s" % game.port)
 	started = true
 
@@ -46,6 +51,11 @@ func _physics_process(dt: float) -> bool:
 		for p: Fighter in game.players.values():
 			if not p.bot:
 				humans += 1
+				if p.peer_id != 1 and p.shield_left > 0 and p.shield_charges == 0:
+					saw_shield = true
+				if p.peer_id != 1 and p.primary == 9:
+					var finish: Dictionary = p.skin_designs.get("9", {})
+					saw_skin = saw_skin or (finish.get("text", "") == "LAN TEST" and finish.get("receiver", Color.WHITE) == Color.CYAN)
 		if humans == expected_humans:
 			saw_two_humans = true
 		if killcam and is_server:
@@ -58,6 +68,7 @@ func _physics_process(dt: float) -> bool:
 					for attacker: Fighter in game.players.values():
 						if attacker.bot and game.enemies(candidate, attacker):
 							candidate.protection = 0
+							candidate.shield_left = 0
 							game.combat.damage(candidate, attacker, 200, "KILLCAM TEST", false)
 							forced_kill = true
 							break
@@ -70,6 +81,9 @@ func _physics_process(dt: float) -> bool:
 		if not is_server and game.players.has(game.local_id):
 			game.set_physics_process(false)
 			var p: Fighter = game.players[game.local_id]
+			if not requested_shield:
+				game.submit_actions.rpc_id(1, 1, {"shield": true})
+				requested_shield = true
 			if killcam:
 				saw_killer = saw_killer or (p.hp <= 0 and p.killer_id < 0 and game.players.has(p.killer_id) and p.killer_weapon == "KILLCAM TEST")
 				saw_respawn = saw_respawn or (saw_killer and p.hp > 0 and p.killer_id == 0)
@@ -89,13 +103,14 @@ func _physics_process(dt: float) -> bool:
 				printerr("FAIL client-authoritative state accepted")
 				quit(1)
 	if elapsed > (15 if is_server else 9):
-		var success: bool = saw_two_humans and game.players.size() == 8 and (is_server or moved)
+		var success: bool = saw_shield and saw_skin and saw_two_humans and game.players.size() == 8 and (is_server or moved)
 		if killcam:
 			success = success and (forced_kill if is_server else saw_killer and saw_respawn)
 			print("NETWORK KILLCAM killed=", forced_kill, " received_killer=", saw_killer, " respawn=", saw_respawn)
 		if vertical and not is_server:
 			success = success and saw_upper_floor
 			print("VERTICAL upper_floor_snapshot=", saw_upper_floor)
+		print("NETWORK SKIN received=", saw_skin, " SHIELD received=", saw_shield)
 		print("NETWORK ", "HOST" if is_server else "CLIENT", " expected_humans=", expected_humans, " observed=", saw_two_humans, " slots=", game.players.size(), " moved=", moved, " result=", success)
 		game.leave()
 		quit(0 if success else 1)

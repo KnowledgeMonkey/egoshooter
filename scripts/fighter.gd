@@ -44,6 +44,7 @@ var camera: Camera3D
 var gun: Node3D
 var world_gun: Node3D
 var world_weapon := -1
+var skin_designs: Dictionary = {}
 var shape: CollisionShape3D
 var capsule: CapsuleShape3D
 var step_clock := 0.0
@@ -76,6 +77,8 @@ func setup(owner_game: Node3D, id: int, display_name: String, team_index: int, a
 	bot = ai
 	primary = Arsenal.primary_id(loadout)
 	weapon = primary
+	if not bot and peer_id == game.local_id:
+		skin_designs = WeaponSkins.loadout_designs(primary)
 	name = "Fighter_%s" % id
 	collision_layer = 2
 	collision_mask = 3
@@ -137,7 +140,9 @@ func _process(delta: float) -> void:
 		for child in world_gun.get_children():
 			world_gun.remove_child(child)
 			child.queue_free()
-		world_gun.add_child(WeaponModels.build(weapon))
+		var model := WeaponModels.build(weapon)
+		WeaponSkins.apply(model, skin_designs.get(str(weapon), {}))
+		world_gun.add_child(model)
 		world_weapon = weapon
 	if is_local():
 		gun.visible = hp > 0
@@ -328,11 +333,15 @@ func snapshot() -> Dictionary:
 	return {"id": peer_id, "name": nickname, "team": team, "bot": bot, "primary": primary,
 		"p": global_position, "v": velocity, "yaw": yaw, "pitch": pitch, "hp": hp,
 		"kills": kills, "deaths": deaths, "weapon": weapon, "mag": magazines, "reserve": reserves,
-		"shield": shield_left, "shield_charges": shield_charges, "rope": rope_active, "cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
+		"skins": skin_designs, "shield": shield_left, "shield_charges": shield_charges, "rope": rope_active, "cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
 		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id,
 		"flash": flash_left, "flashes": flashes, "radar": radar_left, "mantle": mantle_left, "life": life}
 
 func apply_snapshot(s: Dictionary) -> void:
+	var incoming := WeaponSkins.clean_loadout(s.get("skins", {}), primary)
+	if incoming != skin_designs:
+		skin_designs = incoming
+		world_weapon = -1
 	var new_life := life != int(s.get("life", life))
 	life = int(s.get("life", life))
 	var was_dead := hp <= 0

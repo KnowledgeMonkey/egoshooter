@@ -17,6 +17,7 @@ var muzzle: MeshInstance3D
 var muzzle_left := 0.0
 var shot_age := 10.0
 var previous_life := -1
+var skin_revision := -1
 
 func select_weapon(index: int) -> void:
 	if model:
@@ -24,6 +25,8 @@ func select_weapon(index: int) -> void:
 		model.queue_free()
 	model = WeaponModels.build(index)
 	add_child(model)
+	WeaponSkins.apply(model, WeaponSkins.get_design(index))
+	skin_revision = WeaponSkins.revision
 	displayed = index
 	last_ammo = -1
 	equip = float(WeaponHandling.DATA[index].equip)
@@ -121,6 +124,9 @@ func animate(p: Fighter, dt: float) -> void:
 	if displayed != p.weapon or previous_life != p.life:
 		select_weapon(p.weapon)
 		previous_life = p.life
+	if skin_revision != WeaponSkins.revision:
+		WeaponSkins.apply(model, WeaponSkins.get_design(p.weapon))
+		skin_revision = WeaponSkins.revision
 	var profile: Dictionary = WeaponHandling.DATA[p.weapon]
 	var ammo: int = p.magazines[p.weapon]
 	var ads := WeaponHandling.smooth(p.aim_blend)

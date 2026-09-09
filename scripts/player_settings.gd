@@ -7,6 +7,9 @@ static func restore(game: Node3D, path: String = PATH) -> void:
 	var settings := ConfigFile.new()
 	if settings.load(path) != OK:
 		return
+	WeaponSkins.designs.clear()
+	for index in Arsenal.DATA.size():
+		WeaponSkins.set_design(index, WeaponSkins.clean(settings.get_value("skins", str(index), {})))
 	game.nickname = str(settings.get_value("player", "name", "Operator")).strip_edges().left(20)
 	game.loadout = Arsenal.primary_id(int(settings.get_value("player", "loadout", 0)))
 	game.sensitivity = number(settings, "sensitivity", 0.002, 0.0005, 0.005)
@@ -26,6 +29,8 @@ static func number(settings: ConfigFile, key: String, fallback: float, low: floa
 
 static func save(game: Node3D, path: String = PATH) -> Error:
 	var settings := ConfigFile.new()
+	for index in Arsenal.DATA.size():
+		settings.set_value("skins", str(index), WeaponSkins.get_design(index))
 	settings.set_value("player", "name", game.nickname)
 	settings.set_value("player", "loadout", game.loadout)
 	settings.set_value("player", "address", game.last_address)

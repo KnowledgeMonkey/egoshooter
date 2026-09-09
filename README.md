@@ -66,13 +66,25 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 | F11 | Vollbild umschalten |
 | Esc | Menü / Maus freigeben |
 
+## Arsenal, Frontschild und Weapon Lab
+
+**LOADOUT → WAFFEN-SKINS / FARBEN & TEXT** öffnet den neuen Editor. Alle zehn Waffen haben acht getrennt färbbare Bereiche: Gehäuse, Handschutz, Schaft, Lauf, Griff, Visierung, Magazin und Verschluss. Eigener Text (bis 32 Zeichen) und Textfarbe sind ebenfalls einstellbar. Die Vorschau lässt sich mit gedrückter linker Maustaste drehen. **DESIGN SPEICHERN** aktiviert das Design pro Waffe und speichert es lokal. Beim LAN-Beitritt werden die Designs der ausgerüsteten Primärwaffe und Pistole übertragen. Werkdesign wiederherstellen setzt die Farben und Beschriftung zurück. Ungespeicherte Änderungen werden beim Verlassen verworfen.
+
+Neu im Arsenal: **D58 Sentinel** (halbautomatisches Präzisionsgewehr, 58 Basisschaden), **LM60 Bastion** (LMG, 34), **AK42 Hammer** (schweres Gewehr, 42), **K16 Viper** (schnelle SMG, 16) und **AS12 Cyclone** (automatische Shotgun, 12 je Schrotkorn). Eigene Anbauteile, Magazine, Handlingprofile und Schussklänge unterscheiden die Varianten. Die **M77** verursacht 130 Basisschaden und kann ungeschützte Gegner mit einem Treffer ausschalten. Trefferzone, Entfernung und Schutz beeinflussen den tatsächlichen Schaden.
+
+**B** entfaltet ein weiß/neonblaues Frontschild für **45 Sekunden**, einmal pro Leben. Es blockiert Schaden aus der Blickrichtung; Seiten und Rücken bleiben verwundbar. **R** bleibt Nachladen. Server und Clients synchronisieren Dauer und Ladung. Schussbahnen beginnen an der Waffenmündung; die Zielrichtung wird mit dem Fadenkreuz abgeglichen und nahe Wände werden berücksichtigt.
+
+Auf dem Titelbildschirm steht ein **Account-Platzhalter** mit Gastprofil, deaktivierter Anmeldung und Guthaben-/Shop-Anzeige. Er besitzt noch keine Konten, Währung, Käufe oder Cloudspeicherung. Skins sind kostenlos und beeinflussen keine Waffenwerte.
+
+Technik, Einbau und Prüfungen: [Arsenal und Skins](docs/ARSENAL-SKINS.md).
+
 ## Waffenhandling und Kampfgebiet-Erweiterung
 
 Die Karte hat jetzt **11.520 m² statt 7.200 m²**, also **60 % mehr Spielfläche**. Vier zusätzliche begehbare Häuser, zwei begehbare Busse, zwei offene Lkw-Laderäume, zusätzliche Autos, vier brennende Wracks, Barrikaden, Sandbags und zwei abgestellte Panzer ergänzen die drei Hauptwege. Acht Waffenautomaten sind vorbereitete **OFFLINE-Platzhalter**.
 
 **E** an einem der vier Seilaufzüge: zum Dach oder zurück fahren. **SPACE** lässt los. Während der Fahrt sind Waffenaktionen gesperrt. Treppen bleiben als alternative Dachzugänge erhalten. Die geschützten Spawn-Bereiche bleiben im bisherigen Kernbereich für kurze Wege. Details: [Kampfgebiet-Erweiterung](docs/WAR-DISTRICT.md).
 
-Alle fünf Waffen haben eigene ADS-/Wechselzeiten, gedämpften visuellen Rückstoß, Bewegungsträgheit, abgestufte Reloads, Verschlussbewegung, Mündungsfeuer und unterschiedliche synthetische Schussklänge. Details: [Waffenhandling](docs/WEAPON-HANDLING.md).
+Alle zehn Waffen haben eigene ADS-/Wechselzeiten, gedämpften visuellen Rückstoß, Bewegungsträgheit, abgestufte Reloads, Verschlussbewegung, Mündungsfeuer und unterschiedliche synthetische Schussklänge. Details: [Waffenhandling](docs/WEAPON-HANDLING.md).
 
 ## Neue FPS-Funktionen
 
@@ -116,7 +128,7 @@ Grafikprüfung: `tools/godot/Godot_v4.5-stable_win64_console.exe --path . --log-
 
 ## Bewusster Prototyp-Umfang
 
-Das Spiel ist weiterhin ein **spielbarer Prototyp**, dessen Stadtgrafik und Figuren inzwischen deutlich über den ursprünglichen Blockout hinausgehen. Die fünf Waffen besitzen eigene detaillierte 3D-Modelle mit abgeschrägten Kanten, Metall-/Polymermaterialien, Visierungen, Magazinen und beweglichen Verschlüssen. Architektur, Fahrzeuge und taktische Figuren werden aus eigenen Meshes aufgebaut; Animationen bleiben einfach, Sounds synthetisch. Dekorative Details ergänzen die einfachen Kollisionsformen; Treppen, Etagenböden, Fensteröffnungen und Dachdeckungen haben passende Gameplay-Kollisionen. Menschliches Map-Balancing, Sound-Mixing und längere Netzwerk-/Performance-Tests stehen aus. Die erweiterte Karte wurde auch im Grafikfenster geprüft; aktuelle Bilder liegen unter `docs/expansion-*.png`.
+Das Spiel ist weiterhin ein **spielbarer Prototyp**, dessen Stadtgrafik und Figuren inzwischen deutlich über den ursprünglichen Blockout hinausgehen. Die zehn Waffen besitzen eigene detaillierte 3D-Modelle mit abgeschrägten Kanten, Metall-/Polymermaterialien, Visierungen, Magazinen und beweglichen Verschlüssen. Architektur, Fahrzeuge und taktische Figuren werden aus eigenen Meshes aufgebaut; Animationen bleiben einfach, Sounds synthetisch. Dekorative Details ergänzen die einfachen Kollisionsformen; Treppen, Etagenböden, Fensteröffnungen und Dachdeckungen haben passende Gameplay-Kollisionen. Menschliches Map-Balancing, Sound-Mixing und längere Netzwerk-/Performance-Tests stehen aus. Die erweiterte Karte wurde auch im Grafikfenster geprüft; aktuelle Bilder liegen unter `docs/expansion-*.png`.
 
 Einstellungen werden lokal gespeichert. Der LAN-Browser misst Ping; Gegner erscheinen beim Schießen kurz auf dem Radar. Einzelaktionen werden zuverlässig übertragen, Hitscan-Treffer verwenden bis zu 200 ms historische Rückrechnung. Die Killcam rekonstruiert Figuren aus einem kurzen Zustandspuffer; sie ist keine Videoaufnahme. Aufwendige Client-Reconciliation, Produktions-Anti-Cheat und belastbare Tests unter realem Paketverlust bleiben offen. Automatische Netzwerktests laufen mit getrennten Prozessen auf einem Rechner; ein Test mit mehreren physischen LAN-PCs steht aus.
 

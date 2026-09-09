@@ -188,10 +188,10 @@ func join(address: String) -> void:
 
 func _connected() -> void:
 	local_id = multiplayer.get_unique_id()
-	register_player.rpc_id(1, nickname, loadout)
+	register_player.rpc_id(1, nickname, loadout, WeaponSkins.loadout_designs(loadout))
 
 @rpc("any_peer", "call_remote", "reliable")
-func register_player(display_name: String, selected: int) -> void:
+func register_player(display_name: String, selected: int, cosmetics: Dictionary = {}) -> void:
 	if not is_host or not active:
 		return
 	var id := multiplayer.get_remote_sender_id()
@@ -208,7 +208,8 @@ func register_player(display_name: String, selected: int) -> void:
 		if p.bot and (dedicated or players.size() >= config.max_players):
 			remove_player(p.peer_id)
 			break
-	add_player(id, display_name.strip_edges().left(20), false, Arsenal.primary_id(selected))
+	var joined := add_player(id, display_name.strip_edges().left(20), false, Arsenal.primary_id(selected))
+	joined.skin_designs = WeaponSkins.clean_loadout(cosmetics, joined.primary)
 	welcome.rpc_id(id, config)
 	print("JOIN accepted ", id, " roster=", players.size())
 

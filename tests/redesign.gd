@@ -56,7 +56,7 @@ func run() -> void:
 		check(model.has_node("Frame") and model.has_node("Magazine") and model.has_node("Bolt"), "weapon %s has independent animated components" % index)
 		check(second != model and second.get_node("Magazine") != model.get_node("Magazine"), "weapon %s cached instances have independent transforms" % index)
 		var vertices := 0
-		for part in model.get_node("Frame").get_children():
+		for part in model.get_node("Frame").find_children("*", "MeshInstance3D", true, false):
 			if part is MeshInstance3D:
 				vertices += part.mesh.surface_get_array_len(0)
 		check(vertices > 1000, "weapon %s contains detailed visible geometry (%s vertices)" % [index, vertices])
