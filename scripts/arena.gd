@@ -5,9 +5,13 @@ var obstacles: Array[AABB] = []
 var nav := AStarGrid2D.new()
 var spawn_points: Array[Vector3] = []
 var materials := {}
+var building_origins: Array[Vector3] = []
+var lifts: Array[Dictionary] = []
+var vehicle_entries: Array[Vector3] = []
+var vending_points: Array[Vector3] = []
 var collision_only := false
-const HALF_WIDTH := 36
-const HALF_LENGTH := 50
+const HALF_WIDTH := 45
+const HALF_LENGTH := 64
 const SPAWN_Z := 45
 const ROAD = Color("39474d")
 const CONCRETE = Color("b2b7ad")
@@ -64,6 +68,7 @@ func sign_text(words: String, pos: Vector3, yaw: float, tint: Color = Color.WHIT
 	add_child(label)
 
 func building(x: float, z: float, tint: Color, title: String) -> void:
+	building_origins.append(Vector3(x, 0, z))
 	collision_only = true
 	# Two opposite doors plus a side door: a compact interior is a cross-route.
 	box(Vector3(x, 0.05, z), Vector3(9, 0.1, 11), CONCRETE)
@@ -93,11 +98,11 @@ func car(x: float, z: float, tint: Color, long_vehicle: bool = false) -> void:
 		add_child(model)
 
 func build() -> void:
-	box(Vector3(0, -0.3, 0), Vector3(74, 0.6, 102), Color("7d8a7a"))
+	box(Vector3(0, -0.3, 0), Vector3(HALF_WIDTH * 2 + 2, 0.6, HALF_LENGTH * 2 + 2), Color("7d8a7a"))
 	for x in [-22, 0, 22]:
-		box(Vector3(x, 0.012, 0), Vector3(10, 0.025, 98), ROAD, false)
-	for z in [-39, -31, 0, 31, 39]:
-		box(Vector3(0, 0.018, z), Vector3(70, 0.03, 7), ROAD, false)
+		box(Vector3(x, 0.012, 0), Vector3(10, 0.025, HALF_LENGTH * 2 - 2), ROAD, false)
+	for z in [-55, -39, -31, 0, 31, 39, 55]:
+		box(Vector3(0, 0.018, z), Vector3(HALF_WIDTH * 2 - 2, 0.03, 7), ROAD, false)
 	for z in range(-43, 45, 5):
 		box(Vector3(0, 0.04, z), Vector3(0.14, 0.025, 2.4), Color("cebb8b"), false)
 	for x in [-HALF_WIDTH, HALF_WIDTH]:
@@ -110,8 +115,8 @@ func build() -> void:
 	building(-11, 18, Color("bd9d85"), "MOTOR WORKS")
 	car(-2.5, -6, OCHRE, true)
 	car(2.8, 11, Color("b8c4bd"))
-	car(-22, -18, Color("668f97"))
-	car(23, 19, Color("b47258"))
+	car(-22, -18, Color("373c37"))
+	car(23, 19, Color("423d35"))
 	for pos in [Vector3(-19, 0.7, 12), Vector3(-19, 0.7, -3), Vector3(20, 0.7, -10), Vector3(27, 0.7, 13), Vector3(3, 0.7, -22), Vector3(-3, 0.7, 24)]:
 		box(pos, Vector3(3.2, 1.4, 1.5), CONCRETE).visible = false
 		if DisplayServer.get_name() != "headless":
@@ -140,10 +145,11 @@ func build() -> void:
 				box(Vector3(x, h / 2, end * (7.75 - step * 0.5)), Vector3(3, h, 0.5), CONCRETE)
 		box(Vector3(x + sign(x) * 1.8, 2.75, 0), Vector3(0.35, 1.1, 5), TEAL)
 		box(Vector3(x - sign(x) * 1.8, 2.6, 0), Vector3(0.35, 0.8, 2), CONCRETE)
+	WarDistrict.build(self)
 	if DisplayServer.get_name() != "headless":
 		add_child(UrbanDetails.build())
-	sign_text("RELAY DISTRICT", Vector3(0, 3, -49.4), 0, Color("f2d8a4"), 110)
-	sign_text("BLOCKLINE  /  SOUTH", Vector3(0, 3, 49.4), PI, Color("bce4de"), 85)
+	sign_text("RELAY DISTRICT", Vector3(0, 3, -HALF_LENGTH + 0.6), 0, Color("f2d8a4"), 110)
+	sign_text("BLOCKLINE  /  SOUTH", Vector3(0, 3, HALF_LENGTH - 0.6), PI, Color("bce4de"), 85)
 	UrbanLighting.build(self)
 
 func spawn_shelter(x: float, side: float) -> void:

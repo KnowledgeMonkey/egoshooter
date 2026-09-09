@@ -6,21 +6,20 @@ var buildings: Array = []
 
 func _init(owner_arena: RelayArena) -> void:
 	arena = owner_arena
-	for x in [-11, 11]:
-		for z in [-18, 18]:
-			var origin := Vector3(x, 0, z)
-			var side := signf(x)
-			var graph := AStar3D.new()
-			var points := [Vector3(2, 0.1, 4.6), Vector3(2, 3.7, -4.6), Vector3(0, 3.7, -4.6),
-				Vector3(-2.4, 3.7, -4.6), Vector3(-2.4, 7.4, 4.6), Vector3(0, 7.4, 4.7),
-				Vector3(side * 4, 7.4, 4.7), Vector3(side * 4, 7.4, -4.6),
-				Vector3(side * 8.3, 7.4, -4.6), Vector3(side * 8.3, 3.7, 4.6),
-				Vector3(side * 6, 3.7, 4.6), Vector3(side * 6, 0.1, -4.6),
-				Vector3(side * 3.8, 3.7, 4.6), Vector3(0, 3.7, 4.6)]
-			for i in points.size(): graph.add_point(i, origin + points[i])
-			for edge in [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[10,12],[12,13],[13,2]]:
-				graph.connect_points(edge[0], edge[1])
-			buildings.append({"origin": origin, "graph": graph})
+	for center in arena.building_origins:
+		var origin := center
+		var side := signf(center.x)
+		var graph := AStar3D.new()
+		var points := [Vector3(2, 0.1, 4.6), Vector3(2, 3.7, -4.6), Vector3(0, 3.7, -4.6),
+			Vector3(-2.4, 3.7, -4.6), Vector3(-2.4, 7.4, 4.6), Vector3(0, 7.4, 4.7),
+			Vector3(side * 4, 7.4, 4.7), Vector3(side * 4, 7.4, -4.6),
+			Vector3(side * 8.3, 7.4, -4.6), Vector3(side * 8.3, 3.7, 4.6),
+			Vector3(side * 6, 3.7, 4.6), Vector3(side * 6, 0.1, -4.6),
+			Vector3(side * 3.8, 3.7, 4.6), Vector3(0, 3.7, 4.6)]
+		for i in points.size(): graph.add_point(i, origin + points[i])
+		for edge in [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],[10,12],[12,13],[13,2]]:
+			graph.connect_points(edge[0], edge[1])
+		buildings.append({"origin": origin, "graph": graph})
 
 func house(point: Vector3) -> Dictionary:
 	var best: Dictionary = buildings[0]

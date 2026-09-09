@@ -80,7 +80,7 @@ func clear(title: String, subtitle: String) -> void:
 	root.add_child(caption_bg)
 	var caption := Label.new()
 	caption.position = Vector2(695, 744)
-	caption.text = "01 / RELAY DISTRICT\nDREI WEGE. EIN AUFTRAG.\n72 × 100 m   /   2–8 OPERATORS   /   LAN"
+	caption.text = "01 / RELAY DISTRICT\nDREI WEGE. EIN AUFTRAG.\n90 × 128 m   /   2–8 OPERATORS   /   LAN"
 	if title == "LOADOUT":
 		caption.text = "ARMORY / ORIGINAL WEAPON MODELS\nMAUS ZIEHEN: MODELL DREHEN\nMetall / Polymer / Optik / bewegliche Bauteile"
 	caption.add_theme_font_size_override("font_size", 24)
@@ -245,7 +245,7 @@ func settings_menu() -> void:
 	slider("SICHTFELD", 70, 110, game.base_fov, func(v): game.base_fov = v)
 	slider("LAUTSTÄRKE", 0, 1, db_to_linear(AudioServer.get_bus_volume_db(0)), func(v): AudioServer.set_bus_volume_db(0, linear_to_db(maxf(0.0001, v))))
 	space(14)
-	label("WASD   Bewegen        SHIFT   Sprinten\nMAUS   Zielen              LMB / RMB   Feuer / ADS\nSPACE   Springen / Hochziehen        CTRL   Ducken / Rutschen\nR   Nachladen               Q   Primär / Pistole\nG   Frag / F   Flash          TAB   Scoreboard\nV   Nahkampf                ESC   Menü", 18, Color("93aaa9"))
+	label("WASD   Bewegen        SHIFT   Sprinten\nMAUS   Zielen              LMB / RMB   Feuer / ADS\nSPACE   Springen / Hochziehen        CTRL   Ducken / Rutschen\nR   Nachladen               Q   Primär / Pistole\nG   Frag / F   Flash          TAB   Scoreboard\nV   Nahkampf / E   Seilaufzug\nESC   Menü", 18, Color("93aaa9"))
 	button("SAVE & BACK", func():
 		game.save_preferences()
 		if game.active: pause_menu()

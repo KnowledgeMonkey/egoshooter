@@ -126,7 +126,7 @@ func _ready() -> void:
 
 func setup_inputs() -> void:
 	var keys := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "jump": KEY_SPACE,
-		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "melee": KEY_V, "switch": KEY_Q, "scoreboard": KEY_TAB}
+		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "interact": KEY_E, "melee": KEY_V, "switch": KEY_Q, "scoreboard": KEY_TAB}
 	for action in keys:
 		InputMap.add_action(action)
 		var event := InputEventKey.new()
@@ -427,7 +427,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		p.yaw = wrapf(p.yaw - event.relative.x * sensitivity, -PI, PI)
 		p.pitch = clampf(p.pitch - event.relative.y * sensitivity, -1.5, 1.5)
-	for action in ["jump", "reload", "grenade", "flash", "switch", "melee"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact"]:
 		if event.is_action_pressed(action):
 			pending[action] = true
 
@@ -510,7 +510,7 @@ func submit_actions(seq: int, actions: Dictionary) -> void:
 	if p == null or p.hp <= 0 or seq <= p.last_action_sequence:
 		return
 	p.last_action_sequence = seq
-	for action in ["jump", "reload", "grenade", "flash", "switch", "melee"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact"]:
 		if actions.get(action, false) == true:
 			p.queued_actions[action] = true
 

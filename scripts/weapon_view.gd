@@ -15,6 +15,7 @@ var look_initialized := false
 var walk_clock := 0.0
 var muzzle: MeshInstance3D
 var muzzle_left := 0.0
+var shot_age := 10.0
 var previous_life := -1
 
 func select_weapon(index: int) -> void:
@@ -29,6 +30,7 @@ func select_weapon(index: int) -> void:
 	recoil = Vector2.ZERO
 	recoil_velocity = Vector2.ZERO
 	muzzle_left = 0
+	shot_age = 10
 	look_initialized = false
 	muzzle = MeshInstance3D.new()
 	var flash := SphereMesh.new()
@@ -122,11 +124,13 @@ func animate(p: Fighter, dt: float) -> void:
 	var profile: Dictionary = WeaponHandling.DATA[p.weapon]
 	var ammo: int = p.magazines[p.weapon]
 	var ads := WeaponHandling.smooth(p.aim_blend)
+	shot_age += dt
 	if last_ammo >= 0 and ammo < last_ammo:
 		var count := mini(last_ammo - ammo, 3)
 		recoil_velocity += Vector2(profile.kick, profile.rise) * float(profile.spring) * 2.1 * count * lerpf(1, 0.65, ads)
 		kick = 1
 		muzzle_left = 0.04
+		shot_age = 0
 	last_ammo = ammo
 	var spring := WeaponHandling.settle(recoil, recoil_velocity, profile.spring, dt)
 	recoil = spring[0]
@@ -157,8 +161,8 @@ func animate(p: Fighter, dt: float) -> void:
 	magazine.position = Vector3(-0.04 * removed, -removed * (0.06 if p.weapon == 2 else 0.23), 0)
 	magazine.rotation.x = removed * 0.22
 	var bolt := model.get_node("Bolt") as Node3D
-	var cycle := 1 - clampf(p.cooldown / float(Arsenal.DATA[p.weapon].rate), 0, 1)
-	var manual_cycle := sin(clampf((cycle - 0.2) / 0.6, 0, 1) * PI) if p.cooldown > 0 and p.weapon in [2, 3] else 0.0
+	var cycle := clampf(shot_age / float(Arsenal.DATA[p.weapon].rate), 0, 1)
+	var manual_cycle := sin(clampf((cycle - 0.2) / 0.6, 0, 1) * PI) if cycle < 1 and p.weapon in [2, 3] else 0.0
 	bolt.position.z = kick * (0.04 if p.weapon == 4 else 0.025) + manual_cycle * 0.07
 	bolt.rotation.z = manual_cycle * 0.5 if p.weapon == 3 else 0.0
 	if ammo == 0 and p.weapon == 4: bolt.position.z = 0.04

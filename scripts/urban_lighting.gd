@@ -26,9 +26,9 @@ static func build(parent: Node3D) -> void:
 	env.ssao_detail = 0.6
 	env.ssao_light_affect = 0.25
 	env.fog_enabled = true
-	env.fog_light_color = Color("b6c5cb")
+	env.fog_light_color = Color("939991")
 	env.fog_light_energy = 0.65
-	env.fog_density = 0.0016
+	env.fog_density = 0.0025
 	env.fog_sky_affect = 0.1
 	env.fog_aerial_perspective = 0.18
 	env.glow_enabled = true
@@ -39,7 +39,7 @@ static func build(parent: Node3D) -> void:
 	var sun := DirectionalLight3D.new()
 	sun.name = "LateAfternoonSun"
 	sun.rotation_degrees = Vector3(-39, -28, 0)
-	sun.light_color = Color("fff0d6")
+	sun.light_color = Color("ede4ce")
 	sun.light_energy = 1.1
 	sun.light_angular_distance = 1.2
 	sun.shadow_enabled = true

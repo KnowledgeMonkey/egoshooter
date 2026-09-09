@@ -14,11 +14,11 @@ static func build() -> Node3D:
 func _build() -> Node3D:
 	var root := Node3D.new()
 	root.name = "DistrictEnvironment"
-	_perimeter()
+	# Perimeter collision and dressing are supplied by the expanded arena.
 	_streets()
 	_platforms()
 	_skyline()
-	_planting()
+	# Sparse war-district dressing replaces the decorative planting.
 	for x in [-28.0, 28.0]:
 		for z in [-28.0, 28.0]:
 			_streetlight(Vector3(x, 0, z), -signf(x))
@@ -204,10 +204,10 @@ func _skyline() -> void:
 	for side in [-1.0, 1.0]:
 		var index := 0
 		for z in [-33.0, -10.0, 14.0, 36.0]:
-			_backdrop_building(Vector3(side * 45.5, 0, z), Vector3(11, 10.5 + (index % 3) * 2.7, 15), colors[index], index)
+			_backdrop_building(Vector3(side * (RelayArena.HALF_WIDTH + 10.5), 0, z), Vector3(11, 10.5 + (index % 3) * 2.7, 15), colors[index], index)
 			index += 1
 		for x in [-22.0, 1.0, 23.0]:
-			_backdrop_building(Vector3(x, 0, side * 62), Vector3(16, 11 + absf(x) * 0.17, 12), colors[index % 4], index)
+			_backdrop_building(Vector3(x, 0, side * (RelayArena.HALF_LENGTH + 12)), Vector3(16, 11 + absf(x) * 0.17, 12), colors[index % 4], index)
 			index += 1
 	_terrain()
 

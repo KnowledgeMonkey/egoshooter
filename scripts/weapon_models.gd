@@ -87,7 +87,7 @@ static func optic(parent: Node3D, z: float, scope: bool = false) -> void:
 		for side in [-1, 1]:
 			G.block(parent, Vector3(side * 0.023, 0.11, z), Vector3(0.007, 0.046, 0.022), "edge")
 		G.block(parent, Vector3(0, 0.134, z), Vector3(0.047, 0.007, 0.022), "edge")
-		G.block(parent, Vector3(0, 0.092, z + 0.012), Vector3(0.006, 0.004, 0.006), "red")
+		G.block(parent, Vector3(0, 0.11, z + 0.012), Vector3(0.0015, 0.0015, 0.001), "red")
 
 static func magazine(parent: Node3D, z: float, length: float, key: String, curve: float = 0.025) -> void:
 	G.profile(parent, PackedVector2Array([Vector2(z - 0.035, -0.035), Vector2(z + 0.035, -0.035),

@@ -19,7 +19,7 @@ Bei einem Startfehler zeigt die EXE eine Meldung mit dem Diagnoseordner `logs/`.
 
 **Grafik-Update:** Relay District besitzt jetzt modellierte Fassaden und Fahrzeuge, taktische Spielfiguren, neue Hände, lokale PBR-Oberflächen und einen HDR-Himmel mit warmer Sonnenbeleuchtung. Die Petrol-/Sand-/Metallfarben bleiben erhalten. Unter **SETTINGS → Grafik** zwischen **Performance, Hoch und Sehr hoch** wählen; **F11** wechselt ins Vollbild. Standard ist Hoch mit dem Forward+-Renderer. Änderungen, Prüfstand und Grenzen: **[Grafiküberarbeitung](docs/GRAPHICS.md)**.
 
-**Map-Erweiterung:** Die Arena misst jetzt **72 × 100 Meter**. Alle vier Hauptgebäude besitzen **Erdgeschoss, begehbares Obergeschoss und ein erreichbares Dach**. Innen- und Außentreppen führen nach oben; die offenen Fenster im Obergeschoss lassen Schüsse durch. Dachbrüstungen, Sichtschutz und Spawn-Unterstände ergänzen die bisherigen Deckungen. Zugänge, Bilder und Tests: **[Größere Karte und Etagen](docs/MAP-EXPANSION.md)**.
+**Map-Erweiterung:** Die Arena misst jetzt **90 × 128 Meter**. Alle acht Hauptgebäude besitzen **Erdgeschoss, begehbares Obergeschoss und ein erreichbares Dach**. Innen- und Außentreppen führen nach oben; die offenen Fenster im Obergeschoss lassen Schüsse durch. Dachbrüstungen, Sichtschutz und Spawn-Unterstände ergänzen die bisherigen Deckungen. Zugänge, Bilder und Tests: **[Kampfgebiet-Erweiterung](docs/WAR-DISTRICT.md)**; ursprünglicher Etagenaufbau: [Größere Karte und Etagen](docs/MAP-EXPANSION.md).
 
 **Bot-Schwierigkeit:** Unter HOST GAME zwischen **Rekrut, Soldat, Veteran und Elite** wählen. Standard ist der einsteigerfreundliche Rekrut. Alternativ SETTINGS im Hauptmenü oder als Host während eines Matches öffnen: Änderungen wirken sofort. Die Stufe verändert Reaktion, Wahrnehmungsreichweite, Zielgenauigkeit und Feuerpausen; HP und Waffenschaden bleiben gleich.
 
@@ -61,9 +61,18 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 | G | Frag-Granate werfen, 2 pro Leben |
 | F | Flashbang werfen, 1 pro Leben |
 | V | Nahkampfschlag, 65 Schaden bei maximal 2,1 m |
+| E | Seilaufzug am Endpunkt benutzen; SPACE lässt los |
 | Tab | Scoreboard |
 | F11 | Vollbild umschalten |
 | Esc | Menü / Maus freigeben |
+
+## Waffenhandling und Kampfgebiet-Erweiterung
+
+Die Karte hat jetzt **11.520 m² statt 7.200 m²**, also **60 % mehr Spielfläche**. Vier zusätzliche begehbare Häuser, zwei begehbare Busse, zwei offene Lkw-Laderäume, zusätzliche Autos, vier brennende Wracks, Barrikaden, Sandbags und zwei abgestellte Panzer ergänzen die drei Hauptwege. Acht Waffenautomaten sind vorbereitete **OFFLINE-Platzhalter**.
+
+**E** an einem der vier Seilaufzüge: zum Dach oder zurück fahren. **SPACE** lässt los. Während der Fahrt sind Waffenaktionen gesperrt. Treppen bleiben als alternative Dachzugänge erhalten. Die geschützten Spawn-Bereiche bleiben im bisherigen Kernbereich für kurze Wege. Details: [Kampfgebiet-Erweiterung](docs/WAR-DISTRICT.md).
+
+Alle fünf Waffen haben eigene ADS-/Wechselzeiten, gedämpften visuellen Rückstoß, Bewegungsträgheit, abgestufte Reloads, Verschlussbewegung, Mündungsfeuer und unterschiedliche synthetische Schussklänge. Details: [Waffenhandling](docs/WEAPON-HANDLING.md).
 
 ## Neue FPS-Funktionen
 
@@ -73,7 +82,7 @@ Ein roter Bogen am Fadenkreuz zeigt die Richtung des letzten eingehenden Treffer
 
 ## Enthalten
 
-- 72 × 100 m große eigene Stadtmap mit vier zweigeschossigen, begehbaren Gebäuden und vier erreichbaren Dächern, drei Lanes, fünf Querstraßen, Fahrzeugdeckungen, geschützten Spawn-Unterständen und zwei zusätzlichen Seitenplattformen.
+- 90 × 128 m große eigene Stadtmap mit acht zweigeschossigen, begehbaren Gebäuden und acht erreichbaren Dächern, drei Lanes, sieben Querstraßen, Fahrzeugdeckungen, geschützten Spawn-Unterständen und zwei zusätzlichen Seitenplattformen.
 - Modellierte Architektur, Fenster, Dachtechnik, Fahrzeuge, abgerundete Deckungen, Straßen- und Hintergrunddetails; PBR-Texturen, HDR-Himmel, Umgebungsschatten und drei Grafikstufen. Texturen und Himmel liegen lokal bei; Quellen in [assets/CREDITS.md](assets/CREDITS.md).
 - Godot-CharacterBody-Bewegung mit Gravitation, Springen, Sprinten, Ducken, Rutschen, kleinen Treppenstufen und Mantling.
 - AR-4, V9-SMG, SG-8-Shotgun, M77-Sniper und P12-Pistole mit unterschiedlicher Kadenz, Schaden, Streuung, Magazingröße, Nachladen, ADS und Rückstoß. M77 verwendet ein schnelles Projektil mit Schwerkraft; die übrigen Waffen nutzen Hitscan.

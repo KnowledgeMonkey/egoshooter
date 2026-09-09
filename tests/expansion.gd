@@ -52,7 +52,7 @@ func run() -> void:
 	actor.set_physics_process(false)
 	await physics_frame
 	await physics_frame
-	check(game.arena.nav.is_in_boundsv(Vector2i(34, 47)), "navigation covers expanded 72 x 100 map")
+	check(game.arena.nav.is_in_boundsv(Vector2i(34, 47)), "navigation retains the original expanded core")
 	for x in [-33, -21, 0, 21, 33]:
 		check(game.arena.path(Vector3(x, 0, 39), Vector3(x, 0, -39)).size() > 0, "extended route north to south x=%s" % x)
 	for spawn: Vector3 in game.arena.spawn_points:

@@ -97,6 +97,10 @@ func render() -> void:
 	text(Vector2(485, 866), "WASD MOVE / R RELOAD / Q SWITCH / G FRAG / F FLASH / V MELEE / TAB SCORE", 13)
 	text(Vector2(42, 750), "%s ELIM   /   %s DEATHS" % [p.kills, p.deaths], 17)
 	if p.hp > 0 and not game.match_over:
+		if p.rope_active:
+			text(Vector2(650, 620), "SEILAUFZUG / SPACE: LOSLASSEN", 18, MINT)
+		elif not RopeLift.nearby(p).is_empty():
+			text(Vector2(665, 620), "E / SEILAUFZUG BENUTZEN", 18, MINT)
 		var center := Vector2(800, 450)
 		if hurt_time > 0:
 			var direction := damage_direction(hurt_origin, p)
@@ -148,7 +152,7 @@ func render() -> void:
 func minimap(local: Fighter) -> void:
 	var origin := Vector2(40, 40)
 	plate(Rect2(origin, Vector2(225, 243)))
-	var scale_map := Vector2(2.8, 2.1)
+	var scale_map := Vector2(208.0 / (RelayArena.HALF_WIDTH * 2), 220.0 / (RelayArena.HALF_LENGTH * 2))
 	var offset := origin + Vector2(112, 128)
 	for bounds: AABB in game.arena.obstacles:
 		if bounds.position.y > 2.5:

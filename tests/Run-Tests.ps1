@@ -19,7 +19,12 @@ if ($LASTEXITCODE -ne 0) { throw 'Etagen- oder Kartenerweiterungstest fehlgeschl
 if ($LASTEXITCODE -ne 0) { throw 'Neue Gameplay-Funktionen fehlgeschlagen.' }
 & $enginePath --headless --path . --log-file ./tests/fps.log --script tests/fps.gd
 if ($LASTEXITCODE -ne 0) { throw "FPS feature tests failed." }
+& $enginePath --headless --path . --log-file ./tests/handling.log --script tests/handling.gd
+if ($LASTEXITCODE -ne 0) { throw "Weapon handling tests failed." }
+& $enginePath --headless --path . --log-file ./tests/war-district.log --script tests/war_district.gd
+if ($LASTEXITCODE -ne 0) { throw "War district tests failed." }
 & ./tests/Run-FpsNetwork.ps1
+& ./tests/Run-RopeNetwork.ps1
 $hostProcess = Start-Process -FilePath $enginePath -ArgumentList '--headless --path . --log-file ./tests/network-host.log --script tests/network_peer.gd -- --server --killcam' -WindowStyle Hidden -PassThru
 Start-Sleep -Milliseconds 900
 $clientProcess = Start-Process -FilePath $enginePath -ArgumentList '--headless --path . --log-file ./tests/network-client.log --script tests/network_peer.gd -- --killcam' -WindowStyle Hidden -PassThru
@@ -27,6 +32,6 @@ $clientProcess.WaitForExit()
 $hostProcess.WaitForExit()
 Get-Content -LiteralPath tests/network-host.log,tests/network-client.log | Select-String 'NETWORK|JOIN|WARNING|FAIL' | Select-Object -First 20
 if ($hostProcess.ExitCode -ne 0 -or $clientProcess.ExitCode -ne 0) { throw 'Netzwerktest fehlgeschlagen.' }
-$scriptErrors = Select-String -Path tests/integration.log,tests/killcam.log,tests/redesign.log,tests/graphics.log,tests/operator-metrics.log,tests/expansion.log,tests/features.log,tests/fps.log,tests/network-host.log,tests/network-client.log -Pattern 'SCRIPT ERROR|FAIL '
+$scriptErrors = Select-String -Path tests/integration.log,tests/killcam.log,tests/redesign.log,tests/graphics.log,tests/operator-metrics.log,tests/expansion.log,tests/features.log,tests/fps.log,tests/handling.log,tests/war-district.log,tests/network-host.log,tests/network-client.log -Pattern 'SCRIPT ERROR|FAIL '
 if ($scriptErrors) { throw 'Godot meldet Laufzeitfehler.' }
 Write-Output 'Integration und Zwei-Prozess-Netzwerktest bestanden.'

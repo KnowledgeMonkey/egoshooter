@@ -52,6 +52,8 @@ var flash_left := 0.0
 var flashes := 1
 var radar_left := 0.0
 var mantle_left := 0.0
+var rope_path := PackedVector3Array()
+var rope_active := false
 var mantle_start := Vector3.ZERO
 var mantle_target := Vector3.ZERO
 var bot_think := 0.0
@@ -141,7 +143,7 @@ func _process(delta: float) -> void:
 		camera.position.x = sin(shake_clock * 73) * 0.08 * blast_shake
 		camera.position.z = cos(shake_clock * 59) * 0.04 * blast_shake
 		camera.position.y = lerpf(camera.position.y, 1.0 if crouched else 1.65, minf(delta * 15, 1))
-		var sight_ready := aiming and reload_left <= 0 and melee_left <= 0 and mantle_left <= 0
+		var sight_ready := aiming and reload_left <= 0 and melee_left <= 0 and mantle_left <= 0 and not rope_active
 		aim_blend = move_toward(aim_blend, 1.0 if sight_ready else 0.0, delta / float(WeaponHandling.DATA[weapon].ads))
 		var sight_mix := WeaponHandling.smooth(aim_blend)
 		var scope := 32.0 if weapon == 3 else 64.0
@@ -189,12 +191,17 @@ func _physics_process(delta: float) -> void:
 				reserves[weapon] -= need
 		input_data.merge(queued_actions, true)
 		queued_actions.clear()
+		if input_data.get("interact", false): RopeLift.start(self)
+		input_data["interact"] = false
 		move_character(delta)
 		game.combat.actions(self)
 	elif is_local() and hp > 0:
 		move_character(delta)
 
 func move_character(delta: float) -> void:
+	if rope_active:
+		if game.is_host: RopeLift.advance(self, delta)
+		return
 	if mantle_left > 0:
 		mantle_left = maxf(0, mantle_left - delta)
 		var t := 1 - mantle_left / 0.35
@@ -268,6 +275,8 @@ func move_character(delta: float) -> void:
 
 func reset_at(pos: Vector3) -> void:
 	life += 1
+	rope_path.clear()
+	rope_active = false
 	mantle_left = 0
 	killer_id = 0
 	killer = ""
@@ -307,7 +316,7 @@ func snapshot() -> Dictionary:
 	return {"id": peer_id, "name": nickname, "team": team, "bot": bot, "primary": primary,
 		"p": global_position, "v": velocity, "yaw": yaw, "pitch": pitch, "hp": hp,
 		"kills": kills, "deaths": deaths, "weapon": weapon, "mag": magazines, "reserve": reserves,
-		"cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
+		"rope": rope_active, "cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
 		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id,
 		"flash": flash_left, "flashes": flashes, "radar": radar_left, "mantle": mantle_left, "life": life}
 
@@ -320,9 +329,11 @@ func apply_snapshot(s: Dictionary) -> void:
 	hp = s.hp
 	kills = s.kills
 	deaths = s.deaths
+	if weapon != int(s.weapon): aim_blend = 0
 	weapon = s.weapon
 	magazines = s.mag
 	reserves = s.reserve
+	rope_active = bool(s.get("rope", false))
 	cooldown = float(s.get("cooldown", 0))
 	melee_left = float(s.get("melee", 0))
 	reload_left = s.reload

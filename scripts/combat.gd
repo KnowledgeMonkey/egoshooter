@@ -9,16 +9,17 @@ func _init(owner_game: Node3D) -> void:
 	game = owner_game
 
 func actions(p: Fighter) -> void:
-	if not game.is_host or not game.active or game.match_over or p.hp <= 0:
+	if not game.is_host or not game.active or game.match_over or p.hp <= 0 or p.rope_active:
 		return
 	var cmd := p.input_data
 	if cmd.get("melee", false):
 		melee(p)
 	cmd["melee"] = false
-	if p.melee_left > 0 or p.mantle_left > 0:
+	if p.melee_left > 0 or p.mantle_left > 0 or p.rope_active:
 		return
 	if cmd.get("switch", false):
 		p.weapon = 4 if p.weapon == p.primary else p.primary
+		p.aim_blend = 0
 		p.reload_left = 0
 		p.cooldown = maxf(p.cooldown, float(WeaponHandling.DATA[p.weapon].equip))
 		cmd["switch"] = false
@@ -150,7 +151,7 @@ func flash(pos: Vector3) -> void:
 		target.flash_left = maxf(target.flash_left, strength * 4)
 
 func melee(p: Fighter) -> void:
-	if not game.is_host or not game.active or game.match_over or p.hp <= 0 or p.melee_left > 0 or p.mantle_left > 0:
+	if not game.is_host or not game.active or game.match_over or p.hp <= 0 or p.melee_left > 0 or p.mantle_left > 0 or p.rope_active:
 		return
 	p.melee_left = 0.65
 	p.aiming = false
