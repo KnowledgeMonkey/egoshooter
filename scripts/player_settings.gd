@@ -8,7 +8,7 @@ static func restore(game: Node3D, path: String = PATH) -> void:
 	if settings.load(path) != OK:
 		return
 	game.nickname = str(settings.get_value("player", "name", "Operator")).strip_edges().left(20)
-	game.loadout = clampi(int(settings.get_value("player", "loadout", 0)), 0, 3)
+	game.loadout = Arsenal.primary_id(int(settings.get_value("player", "loadout", 0)))
 	game.sensitivity = number(settings, "sensitivity", 0.002, 0.0005, 0.005)
 	game.base_fov = number(settings, "fov", 88, 70, 110)
 	game.graphics_quality = int(number(settings, "graphics", 1, 0, 2))

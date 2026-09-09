@@ -3,6 +3,8 @@ extends Node3D
 
 var game: Node3D
 var owner_id := 0
+var weapon := 3
+var first_trace := true
 var speed := Vector3.ZERO
 var distance := 0.0
 var trace_clock := 0.0
@@ -30,11 +32,14 @@ func _physics_process(dt: float) -> void:
 			var height: float = next.y - target.global_position.y
 			var head := height > (1.0 if target.crouched else 1.48)
 			var factor := 1.65 if head else (0.78 if height < 0.7 else 1.0)
-			if game.combat.damage(target, source, 85 * factor, "M77", head) and not source.bot:
+			if game.combat.damage(target, source, float(Arsenal.DATA[weapon].damage) * factor, Arsenal.DATA[weapon].short, head, global_position) and not source.bot:
 				game.feedback.rpc_id(source.peer_id, head)
 		queue_free()
 	if trace_clock >= 0.05 or not hit.is_empty():
-		game.tracer.rpc(trace_start, next)
+		if first_trace:
+			game.muzzle_trace.rpc(owner_id, trace_start, next)
+			first_trace = false
+		else: game.tracer.rpc(trace_start, next)
 		trace_start = next
 		trace_clock = 0
 	global_position = next

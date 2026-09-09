@@ -126,7 +126,7 @@ func _ready() -> void:
 
 func setup_inputs() -> void:
 	var keys := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "jump": KEY_SPACE,
-		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "interact": KEY_E, "melee": KEY_V, "switch": KEY_Q, "scoreboard": KEY_TAB}
+		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "shield": KEY_B, "interact": KEY_E, "melee": KEY_V, "switch": KEY_Q, "scoreboard": KEY_TAB}
 	for action in keys:
 		InputMap.add_action(action)
 		var event := InputEventKey.new()
@@ -208,7 +208,7 @@ func register_player(display_name: String, selected: int) -> void:
 		if p.bot and (dedicated or players.size() >= config.max_players):
 			remove_player(p.peer_id)
 			break
-	add_player(id, display_name.strip_edges().left(20), false, clampi(selected, 0, 3))
+	add_player(id, display_name.strip_edges().left(20), false, Arsenal.primary_id(selected))
 	welcome.rpc_id(id, config)
 	print("JOIN accepted ", id, " roster=", players.size())
 
@@ -247,7 +247,7 @@ func fill_bots() -> void:
 	while players.size() < target:
 		while players.has(id):
 			id -= 1
-		add_player(id, ["Rook", "Mica", "Cinder", "Atlas", "Echo", "Vale", "Finch"][(-id - 1) % 7] + " [BOT]", true, (-id - 1) % 4)
+		add_player(id, ["Rook", "Mica", "Cinder", "Atlas", "Echo", "Vale", "Finch"][(-id - 1) % 7] + " [BOT]", true, Arsenal.PRIMARY_IDS[(-id - 1) % Arsenal.PRIMARY_IDS.size()])
 
 func restart_round() -> void:
 	if not is_host or not dedicated or not active:
@@ -427,7 +427,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		p.yaw = wrapf(p.yaw - event.relative.x * sensitivity, -PI, PI)
 		p.pitch = clampf(p.pitch - event.relative.y * sensitivity, -1.5, 1.5)
-	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact", "shield"]:
 		if event.is_action_pressed(action):
 			pending[action] = true
 
@@ -510,7 +510,7 @@ func submit_actions(seq: int, actions: Dictionary) -> void:
 	if p == null or p.hp <= 0 or seq <= p.last_action_sequence:
 		return
 	p.last_action_sequence = seq
-	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact", "shield"]:
 		if actions.get(action, false) == true:
 			p.queued_actions[action] = true
 
@@ -685,3 +685,13 @@ func combat_notice(kind: String, actor_life: int, origin: Vector3, victim: Strin
 		hud.elimination_name = victim
 		hud.elimination_time = 2.0
 		audio.play_at("confirm", p.eye(), true)
+
+@rpc("authority", "call_local", "unreliable")
+func muzzle_trace(id: int, start: Vector3, end: Vector3) -> void:
+	if headless: return
+	var p: Fighter = players.get(id)
+	if p != null:
+		start = ShotOrigin.visual(p)
+		var wall := get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(p.eye(), start, 1))
+		if not wall.is_empty(): start = wall.position
+	tracer(start, end)

@@ -1,6 +1,6 @@
 # Automatische Spielupdates unter Windows
 
-`Start-Game.exe` oder `Start-Game.cmd` starten. Der Starter prüft bei jedem Start den neuesten Commit von `KnowledgeMonkey/egoshooter`, Branch `main`. Ein neues GitHub-Release oder eine manuell gepflegte Versionsnummer ist nicht erforderlich. Der erste Start lädt einmal den aktuellen Stand herunter, auch wenn die lokalen Quelldateien bereits diesem Stand entsprechen.
+`Start-Game.exe` oder `Start-Game.cmd` starten. In verteilten Kopien ohne `.git` prüft der Starter den neuesten Commit von `KnowledgeMonkey/egoshooter`, Branch `main`. Ein neues GitHub-Release oder eine manuell gepflegte Versionsnummer ist nicht erforderlich. Der erste Start lädt einmal den aktuellen Stand herunter, auch wenn die lokalen Quelldateien bereits diesem Stand entsprechen.
 
 Der Download kommt über HTTPS direkt von GitHub und ist an den zuvor abgefragten Commit gebunden. Neue Versionen werden in einem eigenen Ordner entpackt. Der Starter prüft Archivpfade, importiert die Ressourcen mit Godot und führt einen kurzen Spielstart ohne Fenster aus. Erst wenn diese Prüfungen erfolgreich sind, wird der Versionszeiger atomar umgestellt und das Spiel gestartet. Diese Startprüfung ersetzt keine vollständigen Gameplay-Tests.
 
@@ -25,8 +25,8 @@ Der äußere Starter und die portable Godot-4.5-Engine sind die feste Startumgeb
 
 ## Diagnose und Tests
 
-- `Start-Game.exe --offline`: GitHub-Prüfung überspringen, installierte Version starten.
-- `Start-Game.exe --verify`: Updates prüfen und das Spiel kurz ohne Fenster testen; Fehlercode 1 bei Startfehlern.
+- `Start-Game.exe --offline`: GitHub-Prüfung überspringen; im Git-Projekt lokale Dateien, sonst installierte Version starten.
+- `Start-Game.exe --verify`: den regulär gewählten Projektstand kurz ohne Fenster testen; Fehlercode 1 bei Startfehlern.
 - `Start-Game.exe --update-only`: nur Updateversuch durchführen, kein Spiel öffnen. Ein Updatefehler mit verfügbarer Rückfallversion ist kein Startfehler; das Ergebnis steht im Updateprotokoll.
 - `tests/Run-UpdaterTests.ps1`: isolierte Tests für Installation, Versionswechsel, Offline-Betrieb, Netzwerkfehler, fehlerhafte Archive, Pfadmanipulation und Erhalt der bisherigen Version.
 
@@ -35,3 +35,7 @@ Die GitHub-Prüfung hat ein Zeitlimit von 10 Sekunden, Downloadverbindungen von 
 ## Lokalen Entwicklungsstand starten
 
 `Start-Local.cmd` bzw. `Start-Game.exe --local` startet diesen Projektordner ohne Update-Prüfung. `--offline` kann dagegen eine Version aus `.updates` wählen. `--local` und `--update-only` sind nicht kombinierbar.
+
+## Startkorrektur für Git-Arbeitskopien
+
+Der neu gebaute Starter erkennt eine `.git`-Datei oder einen `.git`-Ordner und startet standardmäßig direkt diese Arbeitskopie. Alte Versionen unter `.updates` verdrängen damit keine aktuellen Projektdateien mehr. `--update-only` bleibt eine ausdrückliche Update-Prüfung. Verteilte Kopien ohne `.git` behalten das bisherige Updateverhalten. `logs/selected-project.txt` protokolliert den ausgewählten Pfad. Starteränderungen müssen als neue äußere EXE verteilt werden; der Spiel-Updater ersetzt seine eigene EXE nicht.

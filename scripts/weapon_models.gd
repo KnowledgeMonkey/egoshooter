@@ -18,12 +18,13 @@ static func build(index: int) -> Node3D:
 	var bolt := Node3D.new()
 	bolt.name = "Bolt"
 	root.add_child(bolt)
-	match index:
+	match Arsenal.FAMILIES[index]:
 		0: rifle(frame, magazine, bolt)
 		1: smg(frame, magazine, bolt)
 		2: shotgun(frame, magazine, bolt)
 		3: sniper(frame, magazine, bolt)
 		4: pistol(frame, magazine, bolt)
+	WeaponVariants.decorate(index, frame, magazine)
 	G.batch(frame)
 	G.batch(magazine)
 	G.batch(bolt)

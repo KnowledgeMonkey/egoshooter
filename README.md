@@ -4,13 +4,13 @@ Spielbarer Godot-4.5-Prototyp eines kompakten LAN-Ego-Shooters. Eigene Stadtkart
 
 ## Geprüfter lokaler Stand
 
-**Unveröffentlichte Änderungen mit `Start-Local.cmd` starten.** Alternativ `Start-Game.exe --local`. Der normale Starter kann eine andere, von GitHub installierte Version öffnen; auch `--offline` bevorzugt eine installierte Version. `--local` überspringt den Updater und verwendet genau diesen Projektordner.
+**Im Git-Projekt genügt `Start-Game.exe`:** Der Starter erkennt `.git` und startet direkt diesen Projektordner. `Start-Local.cmd` bzw. `Start-Game.exe --local` erzwingt dies auch in Kopien ohne `.git`. Die tatsächlich gewählte Quelle steht in `logs/selected-project.txt`. Relay District ist die einzige Map; die 90 × 128 m große Erweiterung ersetzt die alte Fassung.
 
 Aktuelle Korrekturen und Tests: **[Codebase-Audit vom 09.09.2026](docs/AUDIT-2026-09-09.md)**.
 
 ## Start unter Windows
 
-1. **`Start-Game.exe` doppelklicken.** Der Windows-Starter prüft bei jedem Start GitHub auf eine neue Spielversion, lädt sie automatisch herunter und prüft den Godot-Import. Die portable Engine liegt unter `tools/godot/`. `Start-Game.cmd` leitet ebenfalls an die EXE weiter.
+1. **`Start-Game.exe` doppelklicken.** Im Git-Projekt startet der Windows-Starter die lokalen Dateien. In verteilten Spielkopien ohne `.git` prüft er GitHub auf Updates. Beide Wege prüfen zuerst den Godot-Import. Die portable Engine liegt unter `tools/godot/`. `Start-Game.cmd` leitet ebenfalls an die EXE weiter.
 2. **PLAY** startet ein lokales Team-Deathmatch mit sieben Bots.
 3. Unter **LOADOUT** vorher Namen und Primärwaffe wählen.
 4. **ESC** öffnet das Menü; das Match läuft dabei weiter.

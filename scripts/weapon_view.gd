@@ -106,7 +106,7 @@ func build_hands(index: int) -> void:
 			finger(Vector3(-0.051, y, 0.041), Vector3(-0.044, y, 0.009), Vector3(0.026, y, 0.007), 0.0083)
 		finger(Vector3(-0.047, -0.102, 0.074), Vector3(-0.037, -0.066, 0.044), Vector3(-0.031, -0.053, -0.008), 0.011)
 	else:
-		var support_z := -0.22 if index == 1 else -0.31
+		var support_z := -0.22 if Arsenal.FAMILIES[index] == 1 else -0.31
 		var wrist := Vector3(-0.072, -0.093, support_z + 0.065)
 		sleeve(Vector3(-0.246, -0.308, 0.203), wrist)
 		var support := g.oval(hands, Vector3(-0.047, -0.061, support_z), Vector3(0.061, 0.058, 0.103), "leather")
@@ -158,7 +158,7 @@ func animate(p: Fighter, dt: float) -> void:
 	model.position = bob + Vector3(0, -equip_curve * 0.20, recoil.x)
 	var magazine := model.get_node("Magazine") as Node3D
 	var removed := WeaponHandling.smooth((progress - 0.12) / 0.16) * (1 - WeaponHandling.smooth((progress - 0.50) / 0.18))
-	magazine.position = Vector3(-0.04 * removed, -removed * (0.06 if p.weapon == 2 else 0.23), 0)
+	magazine.position = Vector3(-0.04 * removed, -removed * (0.06 if Arsenal.FAMILIES[p.weapon] == 2 else 0.23), 0)
 	magazine.rotation.x = removed * 0.22
 	var bolt := model.get_node("Bolt") as Node3D
 	var cycle := clampf(shot_age / float(Arsenal.DATA[p.weapon].rate), 0, 1)

@@ -95,6 +95,7 @@ func render() -> void:
 	text(Vector2(1430, 807), "F × %s" % p.flashes, 19, WHITE)
 	text(Vector2(1462, 837), "G × %s" % p.grenades, 19, ORANGE)
 	text(Vector2(485, 866), "WASD MOVE / R RELOAD / Q SWITCH / G FRAG / F FLASH / V MELEE / TAB SCORE", 13)
+	text(Vector2(42, 719), "B / SCHILD %.1f s" % p.shield_left if p.shield_left > 0 else ("B / FRONTSCHILD BEREIT" if p.shield_charges > 0 else "SCHILD VERBRAUCHT"), 17, Color("a7eaff"))
 	text(Vector2(42, 750), "%s ELIM   /   %s DEATHS" % [p.kills, p.deaths], 17)
 	if p.hp > 0 and not game.match_over:
 		if p.rope_active:

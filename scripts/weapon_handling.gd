@@ -8,6 +8,11 @@ const DATA := [
 	{"ads": 0.28, "equip": 0.38, "kick": 0.090, "rise": 0.13, "spring": 18.0, "sway": 1.0, "muzzle": -0.74},
 	{"ads": 0.38, "equip": 0.48, "kick": 0.105, "rise": 0.15, "spring": 15.0, "sway": 1.15, "muzzle": -0.88},
 	{"ads": 0.13, "equip": 0.20, "kick": 0.045, "rise": 0.11, "spring": 26.0, "sway": 0.55, "muzzle": -0.20},
+	{"ads": 0.30, "equip": 0.36, "kick": 0.065, "rise": 0.09, "spring": 20.0, "sway": 0.95, "muzzle": -0.85},
+	{"ads": 0.40, "equip": 0.52, "kick": 0.052, "rise": 0.068, "spring": 21.0, "sway": 1.3, "muzzle": -0.82},
+	{"ads": 0.26, "equip": 0.34, "kick": 0.059, "rise": 0.084, "spring": 21.0, "sway": 0.9, "muzzle": -0.66},
+	{"ads": 0.12, "equip": 0.19, "kick": 0.022, "rise": 0.030, "spring": 32.0, "sway": 0.5, "muzzle": -0.47},
+	{"ads": 0.31, "equip": 0.42, "kick": 0.072, "rise": 0.10, "spring": 20.0, "sway": 1.1, "muzzle": -0.74},
 ]
 
 static func smooth(value: float) -> float:

@@ -12,6 +12,11 @@ func actions(p: Fighter) -> void:
 	if not game.is_host or not game.active or game.match_over or p.hp <= 0 or p.rope_active:
 		return
 	var cmd := p.input_data
+	var fire: bool = cmd.get("fire", false)
+	var pressed := fire and not p.trigger_held
+	p.trigger_held = fire
+	if cmd.get("shield", false): EnergyShield.activate(p)
+	cmd["shield"] = false
 	if cmd.get("melee", false):
 		melee(p)
 	cmd["melee"] = false
@@ -39,7 +44,7 @@ func actions(p: Fighter) -> void:
 		var dir := Arsenal.direction(p.yaw, p.pitch)
 		game.spawn_grenade(p.peer_id, p.eye() + dir * 0.6, dir * 16 + Vector3.UP * 4, "flash")
 	cmd["flash"] = false
-	if cmd.get("fire", false) and p.cooldown <= 0 and p.reload_left <= 0:
+	if fire and (not Arsenal.DATA[p.weapon].get("semi", false) or pressed or p.bot) and p.cooldown <= 0 and p.reload_left <= 0:
 		if p.magazines[p.weapon] > 0:
 			shoot(p)
 		else:
@@ -58,25 +63,33 @@ func shoot(p: Fighter) -> void:
 		var projectile := RifleProjectile.new()
 		projectile.game = game
 		projectile.owner_id = p.peer_id
-		projectile.speed = Arsenal.direction(p.yaw + randf_range(-spread, spread), p.pitch + randf_range(-spread, spread)) * 220
-		projectile.position = p.eye()
-		game.projectiles.add_child(projectile)
+		var route := ShotOrigin.path(p, Arsenal.direction(p.yaw + randf_range(-spread, spread), p.pitch + randf_range(-spread, spread)), w.range)
+		projectile.speed = (route.end - route.start).normalized() * 220
+		projectile.position = route.start
+		projectile.weapon = p.weapon
+		if route.blocked:
+			projectile.free()
+			game.impact.rpc(route.end)
+			game.muzzle_trace.rpc(p.peer_id, route.start, route.end)
+		else:
+			game.projectiles.add_child(projectile)
 	for pellet in range(0 if p.weapon == 3 else int(w.pellets)):
 		var spread: float = w.spread
 		if p.aiming:
-			spread *= 0.025 if p.weapon == 3 else (0.85 if p.weapon == 2 else 0.2)
+			spread *= 0.025 if p.weapon == 3 else (0.85 if w.pellets > 1 else 0.2)
 		if p.velocity.length() > 4:
 			spread *= 1.6
 		var direction := Arsenal.direction(p.yaw + randf_range(-spread, spread), p.pitch + randf_range(-spread, spread))
-		var start := p.eye()
-		var end: Vector3 = start + direction * float(w.range)
-		var query := PhysicsRayQueryParameters3D.create(start, end, 3, [p.get_rid()])
-		var hit := game.get_world_3d().direct_space_state.intersect_ray(query)
-		if not p.bot and p.peer_id != 1 and not game.history.frames.is_empty():
+		var route := ShotOrigin.path(p, direction, w.range)
+		var start: Vector3 = route.start
+		var end: Vector3 = route.end
+		var hit: Dictionary = route.hit
+		if not route.blocked and not p.bot and p.peer_id != 1 and p.peer_id in game.multiplayer.get_peers() and not game.history.frames.is_empty():
 			var peer: ENetPacketPeer = game.multiplayer.multiplayer_peer.get_peer(p.peer_id)
 			if peer != null:
 				var latency := minf(0.2, peer.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME) / 2000.0)
 				hit = game.history.rewind_hit(p, start, end, latency)
+		hit = EnergyShield.clip_ray(game, p, start, end, hit)
 		if not hit.is_empty():
 			end = hit.position
 			if pellet == 0:
@@ -88,11 +101,11 @@ func shoot(p: Fighter) -> void:
 				var multiplier := 1.65 if head else (0.78 if relative_height < 0.7 else 1.0)
 				var distance := start.distance_to(end)
 				var falloff := lerpf(1, 0.55, clampf((distance - float(w.range) * 0.3) / (float(w.range) * 0.7), 0, 1))
-				if damage(target, p, float(w.damage) * multiplier * falloff, w.short, head):
+				if damage(target, p, float(w.damage) * multiplier * falloff, w.short, head, start):
 					hit_any = true
 					head_any = head_any or head
 		if pellet == 0:
-			game.tracer.rpc(start + Vector3.DOWN * 0.18, end)
+			game.muzzle_trace.rpc(p.peer_id, start, end)
 	game.fx.rpc("shot", p.eye(), p.peer_id, p.weapon)
 	if hit_any and not p.bot:
 		game.feedback.rpc_id(p.peer_id, head_any)
@@ -104,6 +117,8 @@ func damage(target: Fighter, source: Fighter, amount: float, weapon_name: String
 		return false
 	if target != source and not game.enemies(target, source):
 		return false
+	var incoming := origin if origin.is_finite() else source.eye()
+	if EnergyShield.blocks(target, incoming): return false
 	target.hp = maxf(0, target.hp - amount)
 	target.last_hurt = 0
 	if not target.bot and (target.peer_id == game.multiplayer.get_unique_id() or target.peer_id in game.multiplayer.get_peers()):
@@ -145,7 +160,7 @@ func flash(pos: Vector3) -> void:
 	for target: Fighter in game.players.values():
 		var offset := pos - target.eye()
 		var distance := offset.length()
-		if target.hp <= 0 or distance > 20 or not game.visible_between(pos, target.eye(), [target.get_rid()]): continue
+		if target.hp <= 0 or EnergyShield.blocks(target, pos) or distance > 20 or not game.visible_between(pos, target.eye(), [target.get_rid()]): continue
 		var facing := Arsenal.direction(target.yaw, target.pitch).dot(offset.normalized())
 		var strength := (1 - distance / 20) * (1.0 if facing > 0.2 else 0.3)
 		target.flash_left = maxf(target.flash_left, strength * 4)

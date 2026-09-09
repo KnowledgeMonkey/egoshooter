@@ -16,6 +16,8 @@ internal static class Launcher
         bool offline = Array.IndexOf(args, "--offline") >= 0;
         bool updateOnly = Array.IndexOf(args, "--update-only") >= 0;
         bool local = Array.IndexOf(args, "--local") >= 0;
+        bool repositoryCopy = Directory.Exists(Path.Combine(root, ".git")) || File.Exists(Path.Combine(root, ".git"));
+        bool useProject = local || (repositoryCopy && !updateOnly);
         Form window = null;
         Label label = null;
         try
@@ -43,7 +45,7 @@ internal static class Launcher
             string gameRoot = root;
             var update = Task.Factory.StartNew(delegate
             {
-                if (local) { status("Starte lokalen Projektstand ..."); return root; }
+                if (useProject) { status("Starte Dateien aus diesem Projektordner ..."); return root; }
                 return Updater.Select(root, engine, delegate(string executable, string project)
                 {
                     string updateLog = Path.Combine(logs, "update-import.log");
@@ -58,6 +60,9 @@ internal static class Launcher
             });
             while (!update.IsCompleted) { Application.DoEvents(); System.Threading.Thread.Sleep(30); }
             gameRoot = update.GetAwaiter().GetResult();
+            File.WriteAllText(Path.Combine(logs, "selected-project.txt"),
+                "Project: " + gameRoot + Environment.NewLine +
+                "Selection: " + (useProject ? "local project" : "updater") + Environment.NewLine);
             if (updateOnly) return 0;
             if (!File.Exists(Path.Combine(gameRoot, "project.godot")))
                 throw new FileNotFoundException("project.godot fehlt neben Start-Game.exe.");

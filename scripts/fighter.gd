@@ -7,6 +7,9 @@ var nickname := "Operator"
 var team := 0
 var bot := false
 var hp := 100.0
+var shield_left := 0.0
+var shield_charges := 1
+var trigger_held := false
 var life := 0
 var kills := 0
 var deaths := 0
@@ -14,8 +17,8 @@ var yaw := 0.0
 var pitch := 0.0
 var primary := 0
 var weapon := 0
-var magazines := [30, 36, 8, 5, 12]
-var reserves := [120, 144, 32, 25, 60]
+var magazines := Arsenal.ammunition()
+var reserves := Arsenal.ammunition(true)
 var grenades := 2
 var cooldown := 0.0
 var melee_left := 0.0
@@ -71,7 +74,7 @@ func setup(owner_game: Node3D, id: int, display_name: String, team_index: int, a
 	nickname = display_name
 	team = team_index
 	bot = ai
-	primary = loadout
+	primary = Arsenal.primary_id(loadout)
 	weapon = primary
 	name = "Fighter_%s" % id
 	collision_layer = 2
@@ -98,6 +101,10 @@ func setup(owner_game: Node3D, id: int, display_name: String, team_index: int, a
 	camera.add_child(gun)
 	gun.position = Vector3(0.18, -0.22, -0.43)
 	gun.visible = false
+	if not game.headless:
+		var shield := EnergyShield.new()
+		shield.fighter = self
+		add_child(shield)
 
 func is_local() -> bool:
 	return not bot and peer_id == game.local_id
@@ -120,6 +127,7 @@ func _process(delta: float) -> void:
 		else:
 			global_position = global_position.lerp(target_position, minf(delta * 18, 1))
 	body_mesh.rotation.y = yaw
+	world_gun.rotation.x = pitch
 	body_mesh.visible = hp > 0 and not is_local() and not game.history.playing
 	body_mesh.scale.y = 0.67 if crouched else 1.0
 	if not game.headless and body_mesh.visible:
@@ -150,7 +158,7 @@ func _process(delta: float) -> void:
 		camera.fov = lerpf(game.base_fov, scope, sight_mix)
 		gun.visible = hp > 0
 		var bob := 0.0 # WeaponView owns movement so camera and weapon bob are not stacked.
-		var sight_height: float = [0.11, 0.11, 0.06, 0.108, 0.068][weapon]
+		var sight_height: float = [0.11, 0.11, 0.06, 0.108, 0.068][Arsenal.FAMILIES[weapon]]
 		var hip := Vector3(0.17, -0.18 + bob, -0.22) if weapon != 4 else Vector3(0.18, -0.22 + bob, -0.43)
 		var gun_target := hip.lerp(Vector3(0, -sight_height, -0.20 if weapon != 4 else -0.36), sight_mix)
 		if reload_left > 0:
@@ -165,6 +173,7 @@ func _physics_process(delta: float) -> void:
 	if game.is_host:
 		bot_grenade_cooldown = maxf(0, bot_grenade_cooldown - delta)
 		flash_left = maxf(0, flash_left - delta)
+		shield_left = maxf(0, shield_left - delta)
 		radar_left = maxf(0, radar_left - delta)
 		if bot:
 			game.bots.update(self, delta)
@@ -294,13 +303,16 @@ func reset_at(pos: Vector3) -> void:
 	melee_left = 0
 	grenades = 2
 	flashes = 1
+	shield_left = 0
+	shield_charges = 1
+	trigger_held = false
 	flash_left = 0
 	radar_left = 0
 	bot_grenade_cooldown = 4
 	last_hurt = 0
 	weapon = primary
-	magazines = [30, 36, 8, 5, 12]
-	reserves = [120, 144, 32, 25, 60]
+	magazines = Arsenal.ammunition()
+	reserves = Arsenal.ammunition(true)
 	input_data = {}
 	queued_actions.clear()
 	bot_route.clear()
@@ -316,7 +328,7 @@ func snapshot() -> Dictionary:
 	return {"id": peer_id, "name": nickname, "team": team, "bot": bot, "primary": primary,
 		"p": global_position, "v": velocity, "yaw": yaw, "pitch": pitch, "hp": hp,
 		"kills": kills, "deaths": deaths, "weapon": weapon, "mag": magazines, "reserve": reserves,
-		"rope": rope_active, "cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
+		"shield": shield_left, "shield_charges": shield_charges, "rope": rope_active, "cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
 		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id,
 		"flash": flash_left, "flashes": flashes, "radar": radar_left, "mantle": mantle_left, "life": life}
 
@@ -349,6 +361,8 @@ func apply_snapshot(s: Dictionary) -> void:
 	killer_id = s.get("killer_id", 0)
 	flash_left = float(s.get("flash", 0))
 	flashes = int(s.get("flashes", 1))
+	shield_left = float(s.get("shield", 0))
+	shield_charges = int(s.get("shield_charges", 1))
 	radar_left = float(s.get("radar", 0))
 	if not is_local() or was_dead:
 		yaw = s.yaw
