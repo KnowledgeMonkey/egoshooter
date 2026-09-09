@@ -224,7 +224,7 @@ func loadout_menu() -> void:
 	fields.primary.item_selected.connect(showcase.select_weapon)
 	button("P12 SIDEARM ANSEHEN   →", func(): showcase.select_weapon(4))
 	space(10)
-	label("SECONDARY     P12 SIDEARM\nLETHAL             2 × FRAG / 1 × FLASH (F)", 20)
+	label("SECONDARY     P12 SIDEARM\nLETHAL             2 × FRAG (G)\nTACTICAL        1 × FLASH (F)", 20)
 	label("AR-4   Allround / mittlere Distanz\nV9       Schnell / Nahkampf\nSG-8   Acht Pellets / kurze Distanz\nM77    Präzision / langsame Feuerrate", 18, Color("93aaa9"))
 	space(10)
 	button("SAVE & BACK                →", func():
@@ -245,7 +245,7 @@ func settings_menu() -> void:
 	slider("SICHTFELD", 70, 110, game.base_fov, func(v): game.base_fov = v)
 	slider("LAUTSTÄRKE", 0, 1, db_to_linear(AudioServer.get_bus_volume_db(0)), func(v): AudioServer.set_bus_volume_db(0, linear_to_db(maxf(0.0001, v))))
 	space(14)
-	label("WASD   Bewegen        SHIFT   Sprinten\nMAUS   Zielen              LMB / RMB   Feuer / ADS\nSPACE   Springen        CTRL   Ducken / Rutschen\nR   Nachladen               Q   Primär / Pistole\nG   Granate                    TAB   Scoreboard\nESC   Menü", 18, Color("93aaa9"))
+	label("WASD   Bewegen        SHIFT   Sprinten\nMAUS   Zielen              LMB / RMB   Feuer / ADS\nSPACE   Springen / Hochziehen        CTRL   Ducken / Rutschen\nR   Nachladen               Q   Primär / Pistole\nG   Frag / F   Flash          TAB   Scoreboard\nESC   Menü", 18, Color("93aaa9"))
 	button("SAVE & BACK", func():
 		game.save_preferences()
 		if game.active: pause_menu()

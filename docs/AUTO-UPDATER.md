@@ -31,3 +31,7 @@ Der äußere Starter und die portable Godot-4.5-Engine sind die feste Startumgeb
 - `tests/Run-UpdaterTests.ps1`: isolierte Tests für Installation, Versionswechsel, Offline-Betrieb, Netzwerkfehler, fehlerhafte Archive, Pfadmanipulation und Erhalt der bisherigen Version.
 
 Die GitHub-Prüfung hat ein Zeitlimit von 10 Sekunden, Downloadverbindungen von 120 Sekunden je Netzwerkoperation und Godot-Prüfprozesse von jeweils 90 Sekunden. Gleichzeitige Updatevorgänge im selben Spielordner werden durch eine Dateisperre verhindert; bei einer Sperrmeldung den zweiten Start nach Abschluss des ersten wiederholen.
+
+## Lokalen Entwicklungsstand starten
+
+`Start-Local.cmd` bzw. `Start-Game.exe --local` startet diesen Projektordner ohne Update-Prüfung. `--offline` kann dagegen eine Version aus `.updates` wählen. `--local` und `--update-only` sind nicht kombinierbar.

@@ -6,11 +6,11 @@ var rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	rng.seed = 721
-	for kind in ["shot", "step", "reload", "explosion", "hit", "death"]:
+	for kind in ["shot", "step", "reload", "explosion", "hit", "death", "flash"]:
 		sounds[kind] = synthesize(kind)
 
 func synthesize(kind: String) -> AudioStreamWAV:
-	var duration: float = {"shot": 0.16, "step": 0.08, "reload": 0.3, "explosion": 0.8, "hit": 0.08, "death": 0.25}[kind]
+	var duration: float = {"shot": 0.16, "step": 0.08, "reload": 0.3, "explosion": 1.8, "flash": 0.22, "hit": 0.08, "death": 0.25}[kind]
 	var data := PackedByteArray()
 	var count := int(duration * 22050)
 	data.resize(count * 2)
@@ -24,7 +24,8 @@ func synthesize(kind: String) -> AudioStreamWAV:
 		match kind:
 			"step": value = filtered * 2 + sin(t * 380) * 0.2
 			"reload": value = noise * (0.5 if fmod(t, 0.1) < 0.025 else 0.04)
-			"explosion": value = filtered * 2.5 + sin(t * 120) * 0.5
+			"explosion": value = filtered * 2.7 + sin(TAU * (48 * t - 7 * t * t)) * 0.7 + noise * exp(-t * 32) * 0.5
+			"flash": value = noise * 0.7 + sin(t * 2500) * 0.25
 			"hit": value = sin(t * 6200) * 0.4
 			"death": value = sin(t * (900 - t * 1800)) * 0.4
 		data.encode_s16(i * 2, int(clampf(value * envelope * 0.7, -1, 1) * 32767))
@@ -47,7 +48,7 @@ func play_at(kind: String, pos: Vector3, local: bool = false, variant: int = 0) 
 	else:
 		var player := AudioStreamPlayer3D.new()
 		player.stream = sounds[kind]
-		player.unit_size = 9 if kind == "shot" else 4
+		player.unit_size = 18 if kind == "explosion" else (9 if kind == "shot" else 4)
 		player.max_distance = 75 if kind != "step" else 22
 		player.volume_db = -8
 		player.pitch_scale = 1.0 + variant * 0.06

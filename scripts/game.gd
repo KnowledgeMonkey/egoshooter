@@ -26,6 +26,7 @@ var death_camera_target_id := 0
 var death_camera_fallback := Transform3D.IDENTITY
 var death_camera_look := Vector3.ZERO
 var grenades: Node3D
+var effects: Node3D
 var projectiles: Node3D
 var objectives: RoundObjectives
 var history: CombatHistory
@@ -62,6 +63,9 @@ func _ready() -> void:
 	grenades = Node3D.new()
 	grenades.name = "Grenades"
 	add_child(grenades)
+	effects = Node3D.new()
+	effects.name = "CombatEffects"
+	add_child(effects)
 	projectiles = Node3D.new()
 	projectiles.name = "Projectiles"
 	add_child(projectiles)
@@ -248,6 +252,8 @@ func fill_bots() -> void:
 func restart_round() -> void:
 	if not is_host or not dedicated or not active:
 		return
+	history.stop()
+	history.frames.clear()
 	scores = [0, 0]
 	time_left = config.time_limit
 	winner = ""
@@ -256,6 +262,9 @@ func restart_round() -> void:
 		grenades.remove_child(grenade)
 		grenade.queue_free()
 	burn_zones.clear()
+	for effect in effects.get_children():
+		effects.remove_child(effect)
+		effect.queue_free()
 	objectives.reset()
 	for projectile in projectiles.get_children():
 		projectiles.remove_child(projectile)
@@ -293,6 +302,9 @@ func leave(reason: String = "") -> void:
 	for grenade in grenades.get_children():
 		grenade.queue_free()
 	burn_zones.clear()
+	for effect in effects.get_children():
+		effects.remove_child(effect)
+		effect.queue_free()
 	objectives.reset()
 	for projectile in projectiles.get_children():
 		projectiles.remove_child(projectile)
@@ -521,6 +533,9 @@ func receive_state(packet: PackedByteArray) -> void:
 	var ended: bool = decoded[3]
 	var result: String = decoded[4]
 	var new_round := match_over and not ended
+	if new_round:
+		history.stop()
+		history.frames.clear()
 	var frags: Array = decoded[5]
 	burn_zones.sync(decoded[6])
 	if decoded.size() > 7: objectives.sync(decoded[7])
@@ -609,14 +624,16 @@ func fx(kind: String, pos: Vector3, id: int, variant: int) -> void:
 		var p: Fighter = players[id]
 		p.pitch = minf(1.5, p.pitch + float(Arsenal.DATA[variant].recoil) * (0.7 if p.aiming else 1.0))
 		p.gun.position.z += 0.065
+	if kind == "flash" and not headless:
+		CombatVisuals.flash(effects, pos)
 	if kind == "explosion" and not headless:
-		CombatVisuals.explosion(self, pos)
+		CombatVisuals.explosion(effects, pos)
 
 @rpc("authority", "call_local", "reliable")
 func detonate(pos: Vector3) -> void:
 	audio.play_at("explosion", pos, false)
 	if not headless:
-		CombatVisuals.explosion(self, pos)
+		CombatVisuals.explosion(effects, pos)
 		if players.has(local_id):
 			var p: Fighter = players[local_id]
 			p.blast_shake = maxf(p.blast_shake, clampf(1 - p.eye().distance_to(pos) / 28.0, 0, 1))
@@ -624,7 +641,7 @@ func detonate(pos: Vector3) -> void:
 @rpc("authority", "call_local", "unreliable")
 func impact(pos: Vector3) -> void:
 	if not headless:
-		CombatVisuals.impact(self, pos)
+		CombatVisuals.impact(effects, pos)
 
 @rpc("authority", "call_local", "unreliable")
 func tracer(a: Vector3, b: Vector3) -> void:
@@ -638,7 +655,7 @@ func tracer(a: Vector3, b: Vector3) -> void:
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.albedo_color = Color("ffe3a5")
 	line.material_override = mat
-	add_child(line)
+	effects.add_child(line)
 	line.position = (a + b) / 2
 	line.look_at(b, Vector3.UP if absf((b - a).normalized().y) < 0.99 else Vector3.RIGHT)
 	get_tree().create_timer(0.045).timeout.connect(line.queue_free)

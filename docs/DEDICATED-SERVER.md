@@ -4,7 +4,7 @@ Der Windows-Starter `Start-Server.exe` startet die enthaltene Godot-4.5-Engine m
 
 `server.json` und CLI-Optionen konfigurieren Netzwerk, Modus, Teilnehmer, Bots und Rundenregeln. Eingabefehler werden mit Meldung und Fehlercode abgewiesen. Ein Windows Job Object bindet die Engine an den Starter; reguläres `stop`/Strg+C schließt die Verbindung über die Serverlaufzeit, ein beendeter Starter hinterlässt keinen Engine-Prozess. Die internen Stopdateien und Protokolle sind pro Prozess getrennt.
 
-Der Server startet nach der konfigurierten Ergebnisphase eine neue Runde. Spieler bleiben verbunden; Punkte, Munition, Gesundheit und Killer-ID werden zurückgesetzt, Granaten und Feuerzonen entfernt. Clients erkennen den Übergang im bestehenden Snapshot und korrigieren ihre Position und Blickrichtung. Das sieben Elemente lange Snapshotformat und die bisherigen RPC-Signaturen bleiben unverändert. Die Serverankündigung im LAN enthält den tatsächlichen Menschenanteil ohne fiktiven Hostspieler.
+Der Server startet nach der konfigurierten Ergebnisphase eine neue Runde. Spieler bleiben verbunden; Punkte, Munition, Gesundheit und Killer-ID werden zurückgesetzt, Granaten und Feuerzonen entfernt. Clients erkennen den Übergang im bestehenden Snapshot und korrigieren ihre Position und Blickrichtung. Der aktuelle Snapshot umfasst acht Elemente einschließlich Feuerzonen und Spielmodus-Zustand. Der Empfänger akzeptiert auch sieben Elemente; Server und Clients sollen dennoch denselben Projektstand verwenden. Die Serverankündigung im LAN enthält den tatsächlichen Menschenanteil ohne fiktiven Hostspieler.
 
 ## Durchgeführte Prüfungen
 

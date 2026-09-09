@@ -15,11 +15,13 @@ internal static class Launcher
         bool verify = Array.IndexOf(args, "--verify") >= 0;
         bool offline = Array.IndexOf(args, "--offline") >= 0;
         bool updateOnly = Array.IndexOf(args, "--update-only") >= 0;
+        bool local = Array.IndexOf(args, "--local") >= 0;
         Form window = null;
         Label label = null;
         try
         {
             Directory.CreateDirectory(logs);
+            if (local && updateOnly) throw new ArgumentException("--local und --update-only können nicht zusammen verwendet werden.");
             if (!verify && !updateOnly)
             {
                 Application.EnableVisualStyles();
@@ -41,6 +43,7 @@ internal static class Launcher
             string gameRoot = root;
             var update = Task.Factory.StartNew(delegate
             {
+                if (local) { status("Starte lokalen Projektstand ..."); return root; }
                 return Updater.Select(root, engine, delegate(string executable, string project)
                 {
                     string updateLog = Path.Combine(logs, "update-import.log");

@@ -1,6 +1,12 @@
 # BLOCKLINE — Relay District
 
-Spielbarer Godot-4.5-Prototyp eines kompakten LAN-Ego-Shooters. Eigene Stadtkarte, drei Lanes, kurze Runden und Respawns. Kein Battle Royale, keine kopierten Maps und keine externen Dienste.
+Spielbarer Godot-4.5-Prototyp eines kompakten LAN-Ego-Shooters. Eigene Stadtkarte, drei Lanes, kurze Runden und Respawns. Kein Battle Royale, keine kopierten Maps und keine externen Dienste für das LAN-Spiel.
+
+## Geprüfter lokaler Stand
+
+**Unveröffentlichte Änderungen mit `Start-Local.cmd` starten.** Alternativ `Start-Game.exe --local`. Der normale Starter kann eine andere, von GitHub installierte Version öffnen; auch `--offline` bevorzugt eine installierte Version. `--local` überspringt den Updater und verwendet genau diesen Projektordner.
+
+Aktuelle Korrekturen und Tests: **[Codebase-Audit vom 09.09.2026](docs/AUDIT-2026-09-09.md)**.
 
 ## Start unter Windows
 
@@ -49,10 +55,11 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 | Linke / rechte Maustaste | Schießen / Aim Down Sight |
 | Shift | Sprinten |
 | Strg | Ducken; beim Sprinten rutschen |
-| Leertaste | Springen, niedrige Hindernisse überspringen |
+| Leertaste | Springen, an niedrigen Kanten hochziehen |
 | R | Nachladen |
 | Q | Primärwaffe ↔ Pistole |
 | G | Frag-Granate werfen, 2 pro Leben |
+| F | Flashbang werfen, 1 pro Leben |
 | Tab | Scoreboard |
 | F11 | Vollbild umschalten |
 | Esc | Menü / Maus freigeben |
@@ -61,14 +68,15 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 
 - 72 × 100 m große eigene Stadtmap mit vier zweigeschossigen, begehbaren Gebäuden und vier erreichbaren Dächern, drei Lanes, fünf Querstraßen, Fahrzeugdeckungen, geschützten Spawn-Unterständen und zwei zusätzlichen Seitenplattformen.
 - Modellierte Architektur, Fenster, Dachtechnik, Fahrzeuge, abgerundete Deckungen, Straßen- und Hintergrunddetails; PBR-Texturen, HDR-Himmel, Umgebungsschatten und drei Grafikstufen. Texturen und Himmel liegen lokal bei; Quellen in [assets/CREDITS.md](assets/CREDITS.md).
-- Godot-CharacterBody-Bewegung mit Gravitation, Springen, Sprinten, Ducken, Rutschen und kleinen Treppenstufen.
-- AR-4, V9-SMG, SG-8-Shotgun, M77-Sniper und P12-Pistole mit unterschiedlicher Kadenz, Schaden, Streuung, Magazingröße, Nachladen, ADS und Rückstoß. Alle fünf nutzen Hitscan.
+- Godot-CharacterBody-Bewegung mit Gravitation, Springen, Sprinten, Ducken, Rutschen, kleinen Treppenstufen und Mantling.
+- AR-4, V9-SMG, SG-8-Shotgun, M77-Sniper und P12-Pistole mit unterschiedlicher Kadenz, Schaden, Streuung, Magazingröße, Nachladen, ADS und Rückstoß. M77 verwendet ein schnelles Projektil mit Schwerkraft; die übrigen Waffen nutzen Hitscan.
 - 100 HP, Kopf-/Körper-/Beintreffer, Entfernungsabfall, schnelle TTK, Regeneration nach fünf Sekunden ohne Schaden. Kein Friendly Fire in TDM; eigene Granaten können verletzen.
-- Drei Sekunden Respawn mit [Live-Killcam aus der Schulterperspektive](docs/KILLCAM.md), Killed-by-Anzeige und Countdown; statische Todesansicht bei fehlendem oder totem Killer. Dynamische Spawnwertung anhand Gegnernähe, Sichtlinien, belegten Positionen und jüngstem Beschuss. 1,8 Sekunden Schutz, der beim Schießen/Werfen endet.
+- Drei Sekunden Respawn mit [Rewind-Killcam mit Live-Fallback](docs/KILLCAM.md), Killed-by-Anzeige und Countdown; statische Todesansicht bei fehlendem oder totem Killer. Dynamische Spawnwertung anhand Gegnernähe, Sichtlinien, belegten Positionen und jüngstem Beschuss. 1,8 Sekunden Schutz, der beim Schießen/Werfen endet.
+- Domination (DOM): A/B/C erobern und halten. Kill Confirmed (KC): gegnerische Marken sammeln, eigene verweigern.
 - TDM mit standardmäßig 50 Team-Eliminierungen/10 Minuten; FFA mit im Host-Menü vorgeschlagenen 25 Eliminierungen. Bei Zeitablauf entscheidet der Punktestand; Gleichstände sind möglich.
 - Serverautoritäre Bewegung, Schaden, Munition, Schüsse, Teams, Granaten, Respawns und Matchregeln; ENet, 60 Physik-Ticks und 20 komprimierte Zustandsupdates pro Sekunde. Clients interpolieren fremde Spieler und sagen ihre eigene Bewegung einfach voraus.
-- Bots mit AStarGrid-Routen, Sichtprüfung, Verfolgung, wechselnden Lanes, Schießen, Nachladen und Respawn.
-- Physikalische Frag-Granaten mit Abprallen, Rollen, Zünder, Radius-Schaden und Deckungsprüfung.
+- Bots mit AStar3D-Routen einschließlich Treppen und Dächern, Sichtprüfung, Verfolgung, wechselnden Lanes, Granaten, Schießen, Nachladen und Respawn.
+- Physikalische Frag-Granaten mit 14 m Explosionsradius, Deckungsprüfung, Feuerball, Druckwelle und aufsteigendem Rauch. Eine Brandzone mit 6,5 m Radius bleibt sechs Sekunden aktiv (18 HP/s); Wände und Etagen begrenzen den Schaden. Flashbangs blenden abhängig von Sichtlinie, Entfernung und Blickrichtung.
 - HUD, Minimap für eigene Position/Team, Hitmarker/Headshot-Marker, Killfeed, Scoreboard, Matchzeit und Loadout-Menü.
 - Prozedurale 3D-Schuss-, Schritt-, Nachlade-, Treffer-, Todes- und Explosionssounds. Keine fremden Audiodateien.
 
@@ -83,6 +91,7 @@ Die sieben Entwicklungsschritte mit Zielen, Dateien/Klassen, vollständigen Code
 ./tests/Run-Dedicated.ps1
 ./tests/Run-DedicatedRounds.ps1
 ./tests/Run-ServerLauncherTests.ps1
+./tests/Run-UpdaterTests.ps1
 ```
 
 Der erste Befehl prüft Gameplay/Physik, Waffen, Bot-Schwierigkeit, Grafikressourcen, Figurenmodelle, die neuen Etagen und einen Host mit einem separaten Client. Der zweite startet einen Host und sieben echte Clientprozesse auf Loopback. Der dritte prüft den serverautoritären Treppenaufstieg eines Clients. Ergebnisse liegen unter `tests/*.log`. Der ursprüngliche Prüfbericht steht in **[docs/TEST-REPORT.md](docs/TEST-REPORT.md)**; den aktuellen Karten-Prüfstand beschreibt **[docs/MAP-EXPANSION.md](docs/MAP-EXPANSION.md)**.
@@ -93,7 +102,7 @@ Grafikprüfung: `tools/godot/Godot_v4.5-stable_win64_console.exe --path . --log-
 
 Das Spiel ist weiterhin ein **spielbarer Prototyp**, dessen Stadtgrafik und Figuren inzwischen deutlich über den ursprünglichen Blockout hinausgehen. Die fünf Waffen besitzen eigene detaillierte 3D-Modelle mit abgeschrägten Kanten, Metall-/Polymermaterialien, Visierungen, Magazinen und beweglichen Verschlüssen. Architektur, Fahrzeuge und taktische Figuren werden aus eigenen Meshes aufgebaut; Animationen bleiben einfach, Sounds synthetisch. Dekorative Details ergänzen die einfachen Kollisionsformen; Treppen, Etagenböden, Fensteröffnungen und Dachdeckungen haben passende Gameplay-Kollisionen. Menschliches Map-Balancing, Sound-Mixing und längere Netzwerk-/Performance-Tests stehen aus. Die erweiterte Karte wurde auch im Grafikfenster geprüft; aktuelle Bilder liegen unter `docs/expansion-*.png`.
 
-Nicht enthalten sind die optionalen Flashbangs, Rewind-Killcam, Mantling, Projektil-Sniper, Gegner-Radarpings sowie spätere Spielmodi. Der LAN-Browser listet Server ohne Ping-Messung. Es gibt keine Rückrechnung historischer Treffer (Lag Compensation), aufwendige Client-Reconciliation oder Produktions-Anti-Cheat-Lösung. Bei LAN-Paketverlust können einzelne kurze Tastenaktionen verloren gehen. Einstellungen gelten für die laufende Anwendung. Bots benutzen primär Bodenrouten und werfen noch keine Granaten.
+Einstellungen werden lokal gespeichert. Der LAN-Browser misst Ping; Gegner erscheinen beim Schießen kurz auf dem Radar. Einzelaktionen werden zuverlässig übertragen, Hitscan-Treffer verwenden bis zu 200 ms historische Rückrechnung. Die Killcam rekonstruiert Figuren aus einem kurzen Zustandspuffer; sie ist keine Videoaufnahme. Aufwendige Client-Reconciliation, Produktions-Anti-Cheat und belastbare Tests unter realem Paketverlust bleiben offen. Automatische Netzwerktests laufen mit getrennten Prozessen auf einem Rechner; ein Test mit mehreren physischen LAN-PCs steht aus.
 
 ## Technikquellen
 

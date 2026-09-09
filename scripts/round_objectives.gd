@@ -27,7 +27,7 @@ func advance(dt: float) -> void:
 		for point: Dictionary in points:
 			var teams := [0, 0]
 			for p: Fighter in game.players.values():
-				if p.hp > 0 and p.global_position.distance_to(point.p) < 4:
+				if p.hp > 0 and absf(p.global_position.y - point.p.y) < 1.5 and p.global_position.distance_to(point.p) < 4 and game.visible_between(p.eye(), point.p + Vector3.UP * 0.2):
 					teams[p.team] += 1
 			var team := 0 if teams[0] > 0 and teams[1] == 0 else (1 if teams[1] > 0 and teams[0] == 0 else -1)
 			if team < 0: continue
@@ -50,7 +50,7 @@ func advance(dt: float) -> void:
 			tag.left -= dt
 			var taken := false
 			for p: Fighter in game.players.values():
-				if p.hp > 0 and p.eye().distance_to(tag.p) < 1.8:
+				if p.hp > 0 and p.eye().distance_to(tag.p) < 1.8 and game.visible_between(p.eye(), tag.p):
 					if p.team != tag.team: game.scores[p.team] += 1
 					taken = true
 					break
@@ -83,6 +83,14 @@ func refresh_visuals() -> void:
 			mesh.mesh = cylinder
 			mesh.material_override = StandardMaterial3D.new()
 			add_child(mesh)
+			if game.config.mode == "DOM":
+				var label := Label3D.new()
+				label.text = ["A", "B", "C"][i]
+				label.font_size = 64
+				label.pixel_size = 0.014
+				label.position.y = 1.3
+				label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+				mesh.add_child(label)
 			visuals[key] = mesh
 		var visual: MeshInstance3D = visuals[key]
 		visual.position = row.p

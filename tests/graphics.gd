@@ -74,7 +74,7 @@ func run() -> void:
 	CombatVisuals.explosion(stage, Vector3.ZERO)
 	CombatVisuals.impact(stage, Vector3.ONE)
 	check(stage.get_child_count() > before, "explosion and impact instantiate effects")
-	await create_timer(1.5).timeout
+	await create_timer(3.6).timeout
 	check(stage.get_child_count() == before, "all transient effect nodes clean up")
 	var game = load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)

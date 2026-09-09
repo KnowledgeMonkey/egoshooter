@@ -1,3 +1,5 @@
+Aktueller Stand: [Codebase-Audit vom 09.09.2026](AUDIT-2026-09-09.md). Die folgenden Angaben beschreiben den ursprünglichen Prüfstand.
+
 # Prüfbericht — 8. September 2026
 
 Dieser Bericht beschreibt die erste Blockout-Version. Die spätere Startkorrektur, vier Bot-Stufen, fünf neuen Waffenmodelle und zusätzliche Prüfungen sind im [Redesign-Bericht](REDESIGN.md) dokumentiert. Den anschließenden Umbau der Stadt, Figuren, Materialien und Beleuchtung auf Forward+ sowie dessen aktuellen Prüfstand beschreibt die [Grafiküberarbeitung](GRAPHICS.md).

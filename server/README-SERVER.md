@@ -65,3 +65,7 @@ Das Serverpaket startet seinen **enthaltenen, festen Spielstand** und aktualisie
 ## Paket erneut erstellen
 
 Im Projekt `launcher/Build-Server.ps1` kompiliert die Server-EXE. `server/Build-Package.ps1 -OutputDirectory <Zielordner>` erstellt das portable Verzeichnis und ZIP samt Engine. Beide Werkzeuge benötigen die vorhandene Engine unter `tools/godot/`. Godot-Lizenzhinweise sind in `third-party/`, Quellen der Spieltexturen in `assets/CREDITS.md` enthalten.
+
+## Aktuelle Spielmodi
+
+`--mode=TDM`, `--mode=FFA`, `--mode=DOM` (Domination) und `--mode=KC` (Kill Confirmed) werden unterstützt. In `server.json` entsprechend `mode` setzen. Server und Clients müssen denselben Projektstand verwenden. Lokale Clientänderungen mit `Start-Local.cmd` starten.

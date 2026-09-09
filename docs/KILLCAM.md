@@ -1,8 +1,12 @@
-# Live-Killcam
+# Killcam: aktueller Stand
+
+`CombatHistory` puffert ungefähr zwei Sekunden Figuren-Zustände. Separate Darstellungsfiguren rekonstruieren die letzten Bewegungen vor dem Tod, ohne echte Spieler zurückzusetzen. Ohne ausreichenden Verlauf folgt die unten beschriebene Live-Ansicht. Umgebung und Schusseffekte werden nicht historisch rekonstruiert. Rundenwechsel und Verlassen leeren den Puffer.
+
+## Ursprünglicher Live-Fallback
 
 Nach einem tödlichen Treffer sieht der lokale Spieler seinen lebenden Killer während des bestehenden Respawn-Fensters (drei Sekunden) aus einer geglätteten Schulterperspektive. Die persistente Kamera hängt direkt am Spiel, unabhängig von den Fighter-Kameras und deren Lebensdauer. Die Death-Plate zeigt weiterhin Name, Waffe und Countdown, ergänzt um `KILLCAM`. Während der Killcam liegt sie weiter unten, damit der Killer sichtbar bleibt.
 
-`CombatSystem.damage()` setzt `killer_id`; der bestehende 20-Hz-Snapshot überträgt dieses eine zusätzliche Feld. Bots mit negativen IDs und menschliche Killer durchlaufen denselben Code. Der Client verwendet die bereits synchronisierte Position und Blickrichtung. Es gibt keine neuen RPCs, keine Änderung der Serverautorität und keinen Rewind-Puffer.
+`CombatSystem.damage()` setzt `killer_id`; der bestehende 20-Hz-Snapshot überträgt dieses eine zusätzliche Feld. Bots mit negativen IDs und menschliche Killer durchlaufen denselben Code. Der Client verwendet die bereits synchronisierte Position und Blickrichtung. Es gibt keine neuen RPCs, keine Änderung der Serverautorität für diesen Live-Fallback keinen zusätzlichen Rewind-Puffer.
 
 Bei Suizid/Fall, unbekanntem, entferntem oder totem Killer bleibt die Kamera statisch über dem eigenen Todesort. Das KILLCAM-Label erscheint nur bei tatsächlich aktivierter Killer-Verfolgung. Während Pause wird weder Kamera noch Perspektive gewechselt. Der serverseitige Respawn läuft weiter; beim Entpausieren wechselt ein bereits respawnter Spieler zurück zur eigenen Kamera. Matchende stellt das bisherige Kameraverhalten für das Scoreboard wieder her; Verlassen des Matches aktiviert die Menükamera. Im Headless-Modus bleibt die neue Kameralogik inaktiv.
 
@@ -16,4 +20,4 @@ Mausbewegung und Spielaktionen werden während des Todeszustands nicht angenomme
 
 Die Tests prüfen Kameraeigentum, Bot- und Spieler-Killer, geglättetes Tracking, Input-Sperre, fehlendes Snapshot-Feld, Tod/Despawn des Killers, Pause, Matchende, Host-/Client-Respawn und Headless-Verhalten. Die Netzwerkprüfung verwendet echte lokale ENet-Prozesse; sie ersetzt keinen Test auf mehreren physischen LAN-Rechnern.
 
-Zum Testen unveröffentlichter Änderungen das lokale Projekt mit `Open-Editor.cmd` öffnen und in Godot F6/F5 starten. `Start-Game.exe` spielt weiterhin die von GitHub installierte Version. Die Killcam steht dort zur Verfügung, sobald die geänderten Spielquellen auf `main` veröffentlicht sind.
+Zum Testen unveröffentlichter Änderungen `Start-Local.cmd` verwenden oder das lokale Projekt mit `Open-Editor.cmd` öffnen und in Godot F6/F5 starten. `Start-Game.exe` spielt weiterhin die von GitHub installierte Version. Die Killcam steht dort zur Verfügung, sobald die geänderten Spielquellen auf `main` veröffentlicht sind.

@@ -191,7 +191,9 @@ func move_character(delta: float) -> void:
 	if mantle_left > 0:
 		mantle_left = maxf(0, mantle_left - delta)
 		var t := 1 - mantle_left / 0.35
-		var next := mantle_start.lerp(mantle_target, t)
+		# Follow the same up-then-forward sweep that Mantle.destination validated.
+		# A diagonal interpolation collided with the ledge before reaching its top.
+		var next := mantle_start.lerp(mantle_target, maxf(0, (t - 0.5) * 2))
 		next.y = lerpf(mantle_start.y, mantle_target.y, minf(t * 2, 1))
 		if test_move(global_transform, next - global_position):
 			mantle_left = 0
@@ -289,7 +291,8 @@ func reset_at(pos: Vector3) -> void:
 	bot_acquired = 0
 	yaw = 0 if pos.z > 0 else PI
 	pitch = 0
-	shape.disabled = false
+	# Queue after any pending death disable, including an immediate round reset.
+	shape.set_deferred("disabled", false)
 
 func snapshot() -> Dictionary:
 	return {"id": peer_id, "name": nickname, "team": team, "bot": bot, "primary": primary,

@@ -47,6 +47,16 @@ func render() -> void:
 	text(Vector2(40, 300), "RELAY DISTRICT", 16, MINT)
 	text(Vector2(40, 324), "LOCAL OPERATIONS / 01", 12)
 	minimap(p)
+	if game.config.mode == "DOM":
+		for i in game.objectives.points.size():
+			var point: Dictionary = game.objectives.points[i]
+			var left: int = 614 + i * 124
+			var tint := MINT if point.owner == 0 else (ORANGE if point.owner == 1 else WHITE)
+			plate(Rect2(left, 126, 116, 48))
+			text(Vector2(left + 10, 151), ["A", "B", "C"][i] + " / " + (["RELAY", "EMBER"][point.owner] if point.owner >= 0 else "NEUTRAL"), 13, tint)
+			canvas.draw_rect(Rect2(left + 10, 161, 96 * clampf(point.capture / 4.0, 0, 1), 3), MINT if point.team == 0 else ORANGE)
+	elif game.config.mode == "KC":
+		text(Vector2(560, 149), "MARKEN SAMMELN: GEGNER BESTÄTIGEN / EIGENE VERWEIGERN", 14, MINT)
 	var row := 0
 	for notice in feed:
 		if notice.until > Time.get_ticks_msec():
@@ -66,8 +76,9 @@ func render() -> void:
 	text(Vector2(1300, 790), Arsenal.DATA[p.weapon].name, 16, MINT)
 	text(Vector2(1300, 835), "%02d" % p.magazines[p.weapon], 43)
 	text(Vector2(1375, 833), "/ %03d" % p.reserves[p.weapon], 22)
+	text(Vector2(1430, 807), "F × %s" % p.flashes, 19, WHITE)
 	text(Vector2(1462, 837), "G × %s" % p.grenades, 19, ORANGE)
-	text(Vector2(575, 866), "WASD MOVE   /   R RELOAD   /   Q SWITCH   /   G FRAG   /   TAB SCORE", 13)
+	text(Vector2(550, 866), "WASD MOVE / R RELOAD / Q SWITCH / G FRAG / F FLASH / TAB SCORE", 13)
 	text(Vector2(42, 750), "%s ELIM   /   %s DEATHS" % [p.kills, p.deaths], 17)
 	if p.hp > 0 and not game.match_over:
 		var center := Vector2(800, 450)

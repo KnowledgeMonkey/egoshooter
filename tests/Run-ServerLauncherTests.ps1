@@ -37,11 +37,12 @@ try {
     if (-not $first.WaitForExit(15000) -or $first.ExitCode -ne 0) { throw 'Console stop command failed.' }
     if (-not $first.StandardOutput.ReadToEnd().Contains('SERVER STOP')) { throw 'Graceful shutdown not observed.' }
     Write-Output 'PASS stop command shuts down engine and launcher cleanly'
+    $existingEngines = @(Get-Process -Name 'Godot_v4.5-stable_win64' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id)
     $crash = Launch '--port=27986 --bots=0 --discovery=false'
     Ready $crash
-    $engineChild = Get-CimInstance Win32_Process -Filter "ParentProcessId=$($crash.Id)" | Where-Object Name -eq 'Godot_v4.5-stable_win64.exe'
-    if (-not $engineChild) { throw 'Engine child was not found.' }
-    $childProcess = Get-Process -Id $engineChild.ProcessId
+    $newEngines = @(Get-Process -Name 'Godot_v4.5-stable_win64' -ErrorAction SilentlyContinue | Where-Object { $_.Id -notin $existingEngines })
+    if ($newEngines.Count -ne 1) { throw 'Expected exactly one new engine process; run this test without concurrent graphical launches.' }
+    $childProcess = $newEngines[0]
     $crash.Kill()
     $crash.WaitForExit()
     if (-not $childProcess.WaitForExit(10000)) { throw 'Engine survived termination of launcher.' }
