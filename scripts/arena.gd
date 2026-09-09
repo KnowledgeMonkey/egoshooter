@@ -34,9 +34,13 @@ func box(pos: Vector3, size: Vector3, color: Color, solid: bool = true) -> Node3
 	mesh.mesh = cube
 	mesh.material_override = material(color)
 	if size.y < 0.7 and size.x > 50:
-		mesh.material_override = UrbanMaterials.get_surface("paving", Color("c3c4b8"))
+		mesh.material_override = UrbanMaterials.get_surface("sand", Color("b6a28a"))
 	if color == ROAD:
-		mesh.material_override = UrbanMaterials.get_surface("asphalt", Color("929d9d"))
+		mesh.material_override = UrbanMaterials.get_surface("asphalt", Color("a8aaa7"))
+		if absf(pos.x) == 39:
+			mesh.material_override = UrbanMaterials.get_surface("sand", Color("c8b194"))
+	if size.y == 4.4:
+		mesh.material_override = UrbanMaterials.get_surface("rock", Color("b1b0a5"))
 	if not solid and size.y < 0.05 and color != ROAD:
 		mesh.material_override = UrbanMaterials.get_surface("paint", color)
 	mesh.visible = not collision_only
@@ -146,9 +150,12 @@ func build() -> void:
 		box(Vector3(x + sign(x) * 1.8, 2.75, 0), Vector3(0.35, 1.1, 5), TEAL)
 		box(Vector3(x - sign(x) * 1.8, 2.6, 0), Vector3(0.35, 0.8, 2), CONCRETE)
 	WarDistrict.build(self)
+	QuarryLandscape.build_routes(self)
 	if DisplayServer.get_name() != "headless":
 		add_child(UrbanDetails.build())
-	sign_text("RELAY DISTRICT", Vector3(0, 3, -HALF_LENGTH + 0.6), 0, Color("f2d8a4"), 110)
+		DepotDetails.build(self)
+		QuarryLandscape.build(self)
+	sign_text("RELAY / QUARRY 07", Vector3(0, 3, -HALF_LENGTH + 0.6), 0, Color("f2d8a4"), 110)
 	sign_text("BLOCKLINE  /  SOUTH", Vector3(0, 3, HALF_LENGTH - 0.6), PI, Color("bce4de"), 85)
 	UrbanLighting.build(self)
 
@@ -184,3 +191,4 @@ func path(from: Vector3, to: Vector3) -> PackedVector2Array:
 	if not nav.is_in_boundsv(a) or nav.is_point_solid(a) or nav.is_point_solid(b):
 		return PackedVector2Array()
 	return nav.get_point_path(a, b)
+

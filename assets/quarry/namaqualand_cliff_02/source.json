@@ -1,0 +1,27 @@
+{
+  "include": {
+    "textures/namaqualand_cliff_02_arm_4k.jpg": {
+      "size": 10149444,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/namaqualand_cliff_02/namaqualand_cliff_02_arm_4k.jpg",
+      "md5": "cbf2ab2799c1b737e5f0bf46f29ec256"
+    },
+    "textures/namaqualand_cliff_02_nor_gl_4k.jpg": {
+      "size": 15544590,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/namaqualand_cliff_02/namaqualand_cliff_02_nor_gl_4k.jpg",
+      "md5": "27de524cdf5579816322aef242c786ca"
+    },
+    "namaqualand_cliff_02.bin": {
+      "size": 5697152,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/namaqualand_cliff_02/namaqualand_cliff_02.bin",
+      "md5": "2920477744cce1a827a61c0d36a1061a"
+    },
+    "textures/namaqualand_cliff_02_diff_4k.jpg": {
+      "size": 9974586,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/namaqualand_cliff_02/namaqualand_cliff_02_diff_4k.jpg",
+      "md5": "da01b7dfba3ea4840a4e4c59f6ac27c6"
+    }
+  },
+  "size": 2857,
+  "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/namaqualand_cliff_02/namaqualand_cliff_02_4k.gltf",
+  "md5": "b753ccd944d7c51bbd368100bc38a428"
+}

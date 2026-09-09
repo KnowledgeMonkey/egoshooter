@@ -13,48 +13,57 @@ static func build(parent: Node3D) -> void:
 	sky.radiance_size = Sky.RADIANCE_SIZE_256
 	env.sky = sky
 	env.sky_rotation.y = 0.8
-	env.background_energy_multiplier = 0.68
+	env.background_energy_multiplier = 0.62
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.52
+	# Keep indirect light cool and modest: the sandstone is warmed by the sun,
+	# while loading bays and the backs of cliffs still read as shaded spaces.
+	env.ambient_light_color = Color("a6b9cd")
+	env.ambient_light_sky_contribution = 0.7
+	env.ambient_light_energy = 0.20
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 1.05
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_exposure = 1.02
 	env.ssao_enabled = true
-	env.ssao_radius = 1.0
-	env.ssao_intensity = 1.1
+	env.ssao_radius = 0.75
+	env.ssao_intensity = 1.25
 	env.ssao_power = 1.25
-	env.ssao_detail = 0.6
-	env.ssao_light_affect = 0.25
+	env.ssao_detail = 0.75
+	env.ssao_light_affect = 0.15
 	env.fog_enabled = true
-	env.fog_light_color = Color("939991")
-	env.fog_light_energy = 0.65
-	env.fog_density = 0.0025
-	env.fog_sky_affect = 0.1
-	env.fog_aerial_perspective = 0.18
+	env.fog_light_color = Color("b5bec1")
+	env.fog_light_energy = 0.7
+	env.fog_density = 0.0018
+	env.fog_sky_affect = 0.12
+	env.fog_aerial_perspective = 0.24
 	env.glow_enabled = true
-	env.glow_intensity = 0.2
-	env.glow_bloom = 0.02
+	env.glow_intensity = 0.14
+	env.glow_bloom = 0.0
 	world.environment = env
 	parent.add_child(world)
 	var sun := DirectionalLight3D.new()
 	sun.name = "LateAfternoonSun"
-	sun.rotation_degrees = Vector3(-39, -28, 0)
-	sun.light_color = Color("ede4ce")
-	sun.light_energy = 1.1
-	sun.light_angular_distance = 1.2
+	sun.rotation_degrees = Vector3(-31, -38, 0)
+	sun.light_color = Color("ffe5c3")
+	sun.light_energy = 1.9
+	sun.light_angular_distance = 0.55
 	sun.shadow_enabled = true
-	sun.shadow_bias = 0.03
-	sun.shadow_normal_bias = 0.8
+	# Large batched road and cliff surfaces need sufficient bias at this grazing
+	# sun angle; too little produces diagonal self-shadow bands on every surface.
+	sun.shadow_bias = 0.05
+	sun.shadow_normal_bias = 0.85
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	sun.directional_shadow_max_distance = 95
 	parent.add_child(sun)
-	# Four modest indoor bounce lights make the open flank routes readable.
+	# Shadowless fill represents scattered skylight inside the open loading bays.
+	# It lifts local detail without flattening the exterior's sunlight and shade.
 	for x in [-11, 11]:
 		for z in [-18, 18]:
 			var bounce := OmniLight3D.new()
 			bounce.position = Vector3(x, 2.65, z)
-			bounce.light_color = Color("c7d9da")
-			bounce.light_energy = 0.6
+			bounce.name = "WarehouseSkyBounce_%s_%s" % [x, z]
+			bounce.light_color = Color("a6c4d5")
+			bounce.light_energy = 0.32
 			bounce.omni_range = 7
-			bounce.omni_attenuation = 1.5
+			bounce.omni_attenuation = 1.7
+			bounce.shadow_enabled = false
 			parent.add_child(bounce)

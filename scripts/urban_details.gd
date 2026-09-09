@@ -17,7 +17,7 @@ func _build() -> Node3D:
 	# Perimeter collision and dressing are supplied by the expanded arena.
 	_streets()
 	_platforms()
-	_skyline()
+	# The quarry escarpment supplies the skyline for this environment.
 	# Sparse war-district dressing replaces the decorative planting.
 	for x in [-28.0, 28.0]:
 		for z in [-28.0, 28.0]:

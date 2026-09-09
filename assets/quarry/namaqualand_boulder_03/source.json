@@ -1,0 +1,27 @@
+{
+  "include": {
+    "namaqualand_boulder_03.bin": {
+      "size": 1450268,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/8k/namaqualand_boulder_03/namaqualand_boulder_03.bin",
+      "md5": "ded61ea310a66144546eac2a891b6dba"
+    },
+    "textures/namaqualand_boulder_03_arm_4k.jpg": {
+      "size": 9905957,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/namaqualand_boulder_03/namaqualand_boulder_03_arm_4k.jpg",
+      "md5": "edfafa1967c881fc4fd06256ab832290"
+    },
+    "textures/namaqualand_boulder_03_nor_gl_4k.jpg": {
+      "size": 9616181,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/namaqualand_boulder_03/namaqualand_boulder_03_nor_gl_4k.jpg",
+      "md5": "8339732fb2a5c249253a48ad53356383"
+    },
+    "textures/namaqualand_boulder_03_diff_4k.jpg": {
+      "size": 12993897,
+      "url": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/namaqualand_boulder_03/namaqualand_boulder_03_diff_4k.jpg",
+      "md5": "2b888caac5b7c32627fe4fd9915ffd8c"
+    }
+  },
+  "size": 2823,
+  "url": "https://dl.polyhaven.org/file/ph-assets/Models/gltf/4k/namaqualand_boulder_03/namaqualand_boulder_03_4k.gltf",
+  "md5": "cc8543eea13cf54db12a53a4c2090f1a"
+}

@@ -24,7 +24,8 @@ static func get_surface(kind: String, tint: Color = Color.WHITE) -> StandardMate
 	var maps := {
 		"asphalt": [2.1, 0.3], "concrete": [2.71, 0.4],
 		"plaster": [2.0, 0.22], "paving": [3.1, 0.45],
-		"ground": [4.0, 0.6], "wood": [1.5, 0.3], "floor": [2.08, 0.25]
+		"ground": [4.0, 0.6], "wood": [1.5, 0.3], "floor": [2.08, 0.25],
+		"rock": [2.38, 0.9], "sand": [2.1, 0.65], "corrugated": [2.7, 0.85], "brick": [4.0, 0.65]
 	}
 	if maps.has(kind):
 		var prefix: String = kind
@@ -36,6 +37,10 @@ static func get_surface(kind: String, tint: Color = Color.WHITE) -> StandardMate
 		mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
 		mat.uv1_scale = Vector3.ONE / float(maps[kind][0])
 		mat.roughness = 1.0
+		if kind == "asphalt":
+			mat.roughness = 0.72
+			mat.normal_scale = 0.5
+		if kind == "corrugated": mat.metallic = 0.45
 
 	elif kind in ["metal", "paint"]:
 		mat.metallic = 0.78 if kind == "metal" else 0.35
