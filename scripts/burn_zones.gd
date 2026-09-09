@@ -1,9 +1,9 @@
 class_name BurnZones
 extends Node3D
 
-const RADIUS := 6.5
-const DURATION := 6.0
-const DAMAGE_PER_SECOND := 18.0
+const RADIUS := 3.5
+const DURATION := 3.0
+const DAMAGE_PER_SECOND := 8.0
 const TICK := 0.25
 var game: Node3D
 var zones: Dictionary = {}

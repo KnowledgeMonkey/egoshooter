@@ -18,6 +18,7 @@ var forced_kill := false
 var saw_killer := false
 var saw_respawn := false
 var saw_skin := false
+var saw_loot := false
 var saw_shield := false
 var requested_shield := false
 
@@ -47,6 +48,10 @@ func _physics_process(dt: float) -> bool:
 		return false
 	elapsed += dt
 	if game.active:
+		if is_server and game.ammo_drops.rows.is_empty() and elapsed < 1.5:
+			game.ammo_drops.serial += 1
+			game.ammo_drops.rows.append({"id": game.ammo_drops.serial, "p": Vector3(40, 0.3, 50), "left": 30.0})
+		saw_loot = saw_loot or not game.ammo_drops.rows.is_empty()
 		var humans := 0
 		for p: Fighter in game.players.values():
 			if not p.bot:
@@ -103,13 +108,14 @@ func _physics_process(dt: float) -> bool:
 				printerr("FAIL client-authoritative state accepted")
 				quit(1)
 	if elapsed > (15 if is_server else 9):
-		var success: bool = saw_shield and saw_skin and saw_two_humans and game.players.size() == 8 and (is_server or moved)
+		var success: bool = saw_loot and saw_shield and saw_skin and saw_two_humans and game.players.size() == 8 and (is_server or moved)
 		if killcam:
 			success = success and (forced_kill if is_server else saw_killer and saw_respawn)
 			print("NETWORK KILLCAM killed=", forced_kill, " received_killer=", saw_killer, " respawn=", saw_respawn)
 		if vertical and not is_server:
 			success = success and saw_upper_floor
 			print("VERTICAL upper_floor_snapshot=", saw_upper_floor)
+		print("NETWORK LOOT received=", saw_loot)
 		print("NETWORK SKIN received=", saw_skin, " SHIELD received=", saw_shield)
 		print("NETWORK ", "HOST" if is_server else "CLIENT", " expected_humans=", expected_humans, " observed=", saw_two_humans, " slots=", game.players.size(), " moved=", moved, " result=", success)
 		game.leave()

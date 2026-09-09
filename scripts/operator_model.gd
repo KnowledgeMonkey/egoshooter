@@ -41,7 +41,7 @@ static func material(key: String) -> StandardMaterial3D:
 		return palette[key]
 	var colors := {"fabric": "54594f", "fabric_dark": "3c423b", "webbing": "797864",
 		"armor": "363d3c", "rubber": "202927", "leather": "404139", "lens": "293d41",
-		"edge": "8a948c", "teal": "3eb6b3", "orange": "d98354", "thread": "a5a28b"}
+		"edge": "8a948c", "teal": "3eb6b3", "orange": "d98354", "thread": "a5a28b", "skin": "b88768", "lips": "795447", "eyes": "ded8ca"}
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = Color(colors.get(key, "54594f"))
 	mat.roughness = 0.84
@@ -184,24 +184,24 @@ static func build(rig: Node3D, team: int) -> void:
 		make_leg(rig, side)
 
 static func make_head(node: Node3D, accent: String) -> void:
-	oval(node, Vector3(0, -0.012, -0.014), Vector3(0.235, 0.296, 0.224), "fabric_dark")
+	oval(node, Vector3(0, -0.012, -0.014), Vector3(0.235, 0.296, 0.224), "skin")
 	# The helmet has a full dome, rolled rim and side-mounted headset cups.
 	loft(node, [Vector4(-0.012, 0.133, 0.136, 0.01), Vector4(0.035, 0.143, 0.146, 0.015),
 		Vector4(0.094, 0.128, 0.133, 0.018), Vector4(0.145, 0.086, 0.09, 0.019),
 		Vector4(0.166, 0.001, 0.001, 0.02)], Vector3.ZERO, "armor", 24)
 	loft(node, [Vector4(-0.018, 0.135, 0.14, 0.01), Vector4(0.002, 0.143, 0.147, 0.01),
 		Vector4(0.011, 0.141, 0.145, 0.01)], Vector3.ZERO, "rubber", 24)
-	oval(node, Vector3(0, -0.005, -0.114), Vector3(0.246, 0.079, 0.079), "rubber")
+	# Exposed face beneath helmet: eyes, brows and nose instead of opaque goggles.
+	oval(node, Vector3(0, -0.036, -0.135), Vector3(0.039, 0.063, 0.051), "skin")
 	for side in [-1, 1]:
-		var glass := oval(node, Vector3(side * 0.055, -0.004, -0.143), Vector3(0.101, 0.049, 0.022), "lens")
-		glass.rotation.y = side * 0.12
+		oval(node, Vector3(side * 0.046, -0.012, -0.122), Vector3(0.041, 0.017, 0.018), "eyes")
+		oval(node, Vector3(side * 0.046, -0.012, -0.133), Vector3(0.012, 0.014, 0.006), "rubber")
+		panel(node, Vector3(side * 0.047, 0.009, -0.126), Vector3(0.047, 0.009, 0.012), "fabric_dark")
 		oval(node, Vector3(side * 0.128, -0.034, 0.017), Vector3(0.067, 0.123, 0.087), "rubber")
 		panel(node, Vector3(side * 0.148, 0.011, 0.048), Vector3(0.022, 0.023, 0.095), "edge")
 		panel(node, Vector3(side * 0.139, 0.057, 0.006), Vector3(0.018, 0.048, 0.081), accent)
 		limb(node, Vector3(side * 0.109, -0.051, -0.01), Vector3(side * 0.061, -0.122, -0.071), 0.011, 0.009, "webbing")
-	oval(node, Vector3(0, -0.067, -0.109), Vector3(0.113, 0.083, 0.055), "fabric_dark")
-	for x in [-0.018, 0, 0.018]:
-		panel(node, Vector3(x, -0.075, -0.135), Vector3(0.006, 0.023, 0.006), "rubber")
+	oval(node, Vector3(0, -0.079, -0.111), Vector3(0.061, 0.013, 0.021), "lips")
 	panel(node, Vector3(0, 0.072, -0.128), Vector3(0.045, 0.058, 0.024), "rubber")
 	panel(node, Vector3(0, 0.086, -0.144), Vector3(0.029, 0.021, 0.011), "edge")
 	limb(node, Vector3(-0.148, -0.036, -0.01), Vector3(-0.08, -0.098, -0.137), 0.005, 0.004, "rubber")

@@ -67,6 +67,16 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 | F11 | Vollbild umschalten |
 | Esc | Menü / Maus freigeben |
 
+## Lesbarkeit, Gesichter und Munitionsbeute
+
+Teammitglieder tragen cyanfarbene Namensmarkierungen mit Team-Symbol und Lebensbalken, auch hinter Deckung. Gegnernamen erscheinen orange, nur bei freier Sicht und innerhalb von 35 m. Figuren haben sichtbare Augen, Nase und Mund unter dem Helm. Fassaden verwenden die vorhandene gescannte Betonstruktur; stärkere Normalmaps machen Oberflächen deutlicher.
+
+Beim normalen Tod fällt eine Munitionskiste. Darüberlaufen in 1,5 m Reichweite füllt je ein Magazin als Reservemunition für Primärwaffe und Pistole auf, bis zur normalen Reservegrenze. Volle Reserven verbrauchen die Kiste nicht. Kisten verschwinden nach 30 Sekunden; maximal 32 gleichzeitig. Aufnahme wird vom Host geprüft, inklusive Sichtlinie. Nuke-Rundenschluss erzeugt keine Beute.
+
+Frag-Granaten: **8 m Radius, maximal 110 Explosionsschaden**, Nachbrennen **3,5 m / 3 Sekunden / 8 HP pro Sekunde**. Schaden nimmt mit Entfernung ab; Deckung und Frontschild gelten weiterhin. Claymore und Killstreak-Nuke behalten ihre eigenen Werte.
+
+Details: [Spielerlesbarkeit und Beute](docs/READABILITY-LOOT.md).
+
 ## Längere Gefechte und Laufmündung
 
 Die Waffen verursachen weniger Schaden bei unveränderter Kadenz. Bei 100 HP und nahen Oberkörpertreffern braucht die AR-4 jetzt 5 statt 4 Treffer (0,42 statt 0,315 s vom ersten bis zum letzten Treffer); V9 7 statt 5, LM60 4 statt 3, D58 3 statt 2. Schrotflinten benötigen bei reinen Körpertreffern mindestens zwei (SG-8) bzw. drei Schüsse (AS12). Kopf-/Beintreffer, Streuung und Entfernung verändern diese Werte. Die M77 behält ihren One-Shot-Schaden.
@@ -130,7 +140,7 @@ Ein roter Bogen am Fadenkreuz zeigt die Richtung des letzten eingehenden Treffer
 - TDM mit standardmäßig 50 Team-Eliminierungen/10 Minuten; FFA mit im Host-Menü vorgeschlagenen 25 Eliminierungen. Bei Zeitablauf entscheidet der Punktestand; Gleichstände sind möglich.
 - Serverautoritäre Bewegung, Schaden, Munition, Schüsse, Teams, Granaten, Respawns und Matchregeln; ENet, 60 Physik-Ticks und 20 komprimierte Zustandsupdates pro Sekunde. Clients interpolieren fremde Spieler und sagen ihre eigene Bewegung einfach voraus.
 - Bots mit AStar3D-Routen einschließlich Treppen und Dächern, Sichtprüfung, Verfolgung, wechselnden Lanes, Granaten, Schießen, Nachladen und Respawn.
-- Physikalische Frag-Granaten mit 14 m Explosionsradius, Deckungsprüfung, Feuerball, Druckwelle und aufsteigendem Rauch. Eine Brandzone mit 6,5 m Radius bleibt sechs Sekunden aktiv (18 HP/s); Wände und Etagen begrenzen den Schaden. Flashbangs blenden abhängig von Sichtlinie, Entfernung und Blickrichtung.
+- Physikalische Frag-Granaten mit 8 m Explosionsradius, Deckungsprüfung, Feuerball, Druckwelle und aufsteigendem Rauch. Eine Brandzone mit 3,5 m Radius bleibt drei Sekunden aktiv (8 HP/s); Wände und Etagen begrenzen den Schaden. Flashbangs blenden abhängig von Sichtlinie, Entfernung und Blickrichtung.
 - HUD, Minimap für eigene Position/Team, Hitmarker/Headshot-Marker, Killfeed, Scoreboard, Matchzeit und Loadout-Menü.
 - Prozedurale 3D-Schuss-, Schritt-, Nachlade-, Treffer-, Todes- und Explosionssounds. Keine fremden Audiodateien.
 

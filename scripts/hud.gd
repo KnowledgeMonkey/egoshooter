@@ -63,6 +63,7 @@ func render() -> void:
 	text(Vector2(40, 300), "RELAY DISTRICT", 16, MINT)
 	text(Vector2(40, 324), "LOCAL OPERATIONS / 01", 12)
 	minimap(p)
+	player_labels(p)
 	if game.config.mode == "DOM":
 		for i in game.objectives.points.size():
 			var point: Dictionary = game.objectives.points[i]
@@ -206,3 +207,24 @@ func scoreboard() -> void:
 		y += 38
 	if game.match_over:
 		text(Vector2(402, 691), "MATCH COMPLETE   /   ESC → LEAVE MATCH → PLAY", 16, MINT)
+
+func player_labels(local: Fighter) -> void:
+	if local == null or local.hp <= 0 or game.history.playing: return
+	var camera: Camera3D = local.camera
+	for other: Fighter in game.players.values():
+		if other == local or other.hp <= 0: continue
+		var enemy: bool = game.enemies(local, other)
+		var point := other.eye() + Vector3.UP * 0.35
+		if camera.is_position_behind(point): continue
+		var distance := local.eye().distance_to(other.eye())
+		if enemy and (distance > 35 or not game.visible_between(local.eye(), other.eye(), [local.get_rid(), other.get_rid()])): continue
+		var at := camera.unproject_position(point)
+		if at.x < 10 or at.x > 1590 or at.y < 20 or at.y > 875: continue
+		var tint := ORANGE if enemy else Color("65dcff")
+		var label := ("▼ " if enemy else "◆ TEAM ") + other.nickname
+		var width := font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x
+		plate(Rect2(at + Vector2(-width / 2 - 6, -20), Vector2(width + 12, 27)), Color(0.015, 0.035, 0.05, 0.8))
+		text(at + Vector2(-width / 2, 0), label, 17, tint)
+		if not enemy:
+			canvas.draw_line(at + Vector2(-20, 10), at + Vector2(20, 10), Color("253f48"), 4)
+			canvas.draw_line(at + Vector2(-20, 10), at + Vector2(-20 + other.hp * 0.4, 10), tint, 4)

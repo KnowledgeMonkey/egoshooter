@@ -2,8 +2,8 @@ class_name CombatSystem
 extends RefCounted
 
 var game: Node3D
-const BLAST_RADIUS := 14.0
-const BLAST_DAMAGE := 180.0
+const BLAST_RADIUS := 8.0
+const BLAST_DAMAGE := 110.0
 
 func _init(owner_game: Node3D) -> void:
 	game = owner_game
@@ -133,6 +133,7 @@ func damage(target: Fighter, source: Fighter, amount: float, weapon_name: String
 		target.recon_left = 0
 		target.shield_left = 0
 		game.objectives.death(target)
+		game.ammo_drops.drop(target)
 		target.respawn_left = 3
 		target.killer = source.nickname
 		target.killer_weapon = weapon_name

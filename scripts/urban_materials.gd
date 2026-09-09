@@ -26,25 +26,11 @@ static func get_surface(kind: String, tint: Color = Color.WHITE) -> StandardMate
 		mat.albedo_texture = texture("res://assets/materials/%s_color.jpg" % prefix)
 		mat.normal_enabled = true
 		mat.normal_texture = texture("res://assets/materials/%s_normal.jpg" % prefix)
-		mat.normal_scale = 0.10 if kind == "plaster" else (0.4 if kind == "asphalt" else 0.65)
+		mat.normal_scale = 0.5 if kind == "plaster" else (0.7 if kind == "asphalt" else 0.85)
 		mat.roughness_texture = texture("res://assets/materials/%s_roughness.jpg" % prefix)
 		mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
 		mat.uv1_scale = Vector3.ONE * (0.23 if kind == "asphalt" else (0.25 if kind == "ground" else 0.42))
-		if kind == "plaster":
-			mat.albedo_texture = null
-			var noise := FastNoiseLite.new()
-			noise.seed = 7481
-			noise.frequency = 0.09
-			var tex := NoiseTexture2D.new()
-			tex.width = 256
-			tex.height = 256
-			tex.seamless = true
-			tex.noise = noise
-			var gradient := Gradient.new()
-			gradient.set_color(0, Color(0.88, 0.88, 0.88))
-			gradient.set_color(1, Color(0.98, 0.98, 0.98))
-			tex.color_ramp = gradient
-			mat.albedo_texture = tex
+
 	elif kind in ["metal", "paint"]:
 		mat.metallic = 0.78 if kind == "metal" else 0.35
 		mat.roughness = 0.37 if kind == "metal" else 0.32

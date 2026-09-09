@@ -30,6 +30,7 @@ var effects: Node3D
 var projectiles: Node3D
 var objectives: RoundObjectives
 var history: CombatHistory
+var ammo_drops: AmmoDrops
 var streaks: Killstreaks
 var burn_zones: BurnZones
 var grenade_serial := 0
@@ -78,6 +79,9 @@ func _ready() -> void:
 	burn_zones = BurnZones.new()
 	burn_zones.game = self
 	add_child(burn_zones)
+	ammo_drops = AmmoDrops.new()
+	ammo_drops.game = self
+	add_child(ammo_drops)
 	streaks = Killstreaks.new()
 	streaks.game = self
 	add_child(streaks)
@@ -268,6 +272,7 @@ func restart_round() -> void:
 		grenade.queue_free()
 	burn_zones.clear()
 	streaks.clear()
+	ammo_drops.clear()
 	for effect in effects.get_children():
 		effects.remove_child(effect)
 		effect.queue_free()
@@ -313,6 +318,7 @@ func leave(reason: String = "") -> void:
 		grenade.queue_free()
 	burn_zones.clear()
 	streaks.clear()
+	ammo_drops.clear()
 	for effect in effects.get_children():
 		effects.remove_child(effect)
 		effect.queue_free()
@@ -468,6 +474,7 @@ func _physics_process(dt: float) -> void:
 			input_sequence += 1
 			submit_input.rpc_id(1, input_sequence, command)
 	if is_host:
+		ammo_drops.advance(dt)
 		streaks.advance(dt)
 		burn_zones.advance(dt)
 		objectives.advance(dt)
@@ -485,7 +492,7 @@ func _physics_process(dt: float) -> void:
 			var frags := []
 			for g: FragGrenade in grenades.get_children():
 				frags.append({"id": int(g.name), "p": g.global_position, "owner": g.owner_id, "kind": g.kind})
-			var packet := var_to_bytes([roster, scores, time_left, match_over, winner, frags, burn_zones.snapshot(), objectives.snapshot(), streaks.snapshot()]).compress(FileAccess.COMPRESSION_DEFLATE)
+			var packet := var_to_bytes([roster, scores, time_left, match_over, winner, frags, burn_zones.snapshot(), objectives.snapshot(), streaks.snapshot(), ammo_drops.rows]).compress(FileAccess.COMPRESSION_DEFLATE)
 			receive_state.rpc(packet)
 
 @rpc("any_peer", "call_remote", "unreliable_ordered", 1)
@@ -536,7 +543,7 @@ func receive_state(packet: PackedByteArray) -> void:
 	if not active:
 		return
 	var decoded: Array = bytes_to_var(packet.decompress_dynamic(65536, FileAccess.COMPRESSION_DEFLATE))
-	if decoded.size() < 7 or decoded.size() > 9:
+	if decoded.size() < 7 or decoded.size() > 10:
 		return
 	var roster: Array = decoded[0]
 	history.record(roster)
@@ -552,6 +559,7 @@ func receive_state(packet: PackedByteArray) -> void:
 	burn_zones.sync(decoded[6])
 	if decoded.size() > 7: objectives.sync(decoded[7])
 	if decoded.size() > 8: streaks.sync(decoded[8])
+	if decoded.size() > 9: ammo_drops.sync(decoded[9])
 	scores = team_scores
 	time_left = remaining
 	match_over = ended
