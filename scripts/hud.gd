@@ -96,6 +96,7 @@ func render() -> void:
 	text(Vector2(1462, 837), "G × %s" % p.grenades, 19, ORANGE)
 	text(Vector2(485, 866), "WASD MOVE / R RELOAD / Q SWITCH / G FRAG / F FLASH / V MELEE / TAB SCORE", 13)
 	text(Vector2(42, 719), "B / SCHILD %.1f s" % p.shield_left if p.shield_left > 0 else ("B / FRONTSCHILD BEREIT" if p.shield_charges > 0 else "SCHILD VERBRAUCHT"), 17, Color("a7eaff"))
+	rewards(p)
 	text(Vector2(42, 750), "%s ELIM   /   %s DEATHS" % [p.kills, p.deaths], 17)
 	if p.hp > 0 and not game.match_over:
 		if p.rope_active:
@@ -110,7 +111,7 @@ func render() -> void:
 				canvas.draw_arc(center, 95, angle - 0.32, angle + 0.32, 16, Color(1, 0.24, 0.12, hurt_time / 0.9), 6, true)
 		if elimination_time > 0:
 			text(Vector2(650, 580), "ELIMINIERT · " + elimination_name, 22, ORANGE)
-		if p.magazines[p.weapon] <= maxi(1, int(Arsenal.DATA[p.weapon].mag) / 4) and p.reload_left <= 0:
+		if p.infinite_left <= 0 and p.magazines[p.weapon] <= maxi(1, int(Arsenal.DATA[p.weapon].mag) / 4) and p.reload_left <= 0:
 			text(Vector2(707, 541), "R · NACHLADEN", 17, ORANGE)
 		if p.weapon == 3 and p.aim_blend > 0.92:
 			canvas.draw_circle(center, 970, Color(0.01, 0.015, 0.018, 0.98), false, 1370, true)
@@ -150,6 +151,24 @@ func render() -> void:
 		canvas.draw_rect(Rect2(0, 0, 1600, 900), Color(0.94, 0.95, 0.93, clampf(p.flash_left / 2.0, 0, 0.97)))
 		text(Vector2(709, 530), "FLASHBANG", 19, Color("344444"))
 
+	if game.streaks.flash_left > 0:
+		canvas.draw_rect(Rect2(0, 0, 1600, 900), Color(1, 0.87, 0.62, minf(0.95, game.streaks.flash_left / 3)))
+
+func rewards(p: Fighter) -> void:
+	plate(Rect2(40, 580, 340, 110))
+	text(Vector2(54, 605), "SERIE %s / 5 MUN · 10 UAV · 15 KIT · 20 NUKE" % p.streak, 13, MINT)
+	text(Vector2(54, 631), "H / CLAYMORE BEREIT" if p.ult_charge >= 4 else "H / CLAYMORE  %s / 4 KILLS" % p.ult_charge, 17, MINT)
+	canvas.draw_rect(Rect2(54, 642, 310, 5), Color("405057"))
+	canvas.draw_rect(Rect2(54, 642, 310 * p.ult_charge / 4.0, 5), MINT)
+	var status := ""
+	if p.infinite_left > 0: status += "ENDLOSMUNITION %.0fs  " % ceilf(p.infinite_left)
+	if p.recon_left > 0: status += "UAV %.0fs" % ceilf(p.recon_left)
+	text(Vector2(54, 675), status, 14, ORANGE)
+	if game.streaks.nuke_left > 0:
+		plate(Rect2(530, 188, 540, 72), Color(0.4, 0.04, 0.015, 0.94))
+		text(Vector2(552, 220), "NUKE EINSCHLAG IN %.1f" % game.streaks.nuke_left, 25, ORANGE)
+		text(Vector2(552, 246), "AUSGELÖST VON " + game.streaks.nuke_name, 16)
+
 func minimap(local: Fighter) -> void:
 	var origin := Vector2(40, 40)
 	plate(Rect2(origin, Vector2(225, 243)))
@@ -163,7 +182,7 @@ func minimap(local: Fighter) -> void:
 	for p: Fighter in game.players.values():
 		if p.hp <= 0:
 			continue
-		if p != local and (not local or (game.enemies(local, p) and p.radar_left <= 0)):
+		if p != local and (not local or (game.enemies(local, p) and p.radar_left <= 0 and local.recon_left <= 0)):
 			continue
 		var point := offset + Vector2(p.global_position.x, p.global_position.z) * scale_map
 		canvas.draw_circle(point, 4 if p == local else 3, WHITE if p == local else (ORANGE if game.enemies(local, p) else MINT))

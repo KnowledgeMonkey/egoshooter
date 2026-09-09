@@ -12,6 +12,11 @@ var shield_charges := 1
 var trigger_held := false
 var life := 0
 var kills := 0
+var streak := 0
+var ult_charge := 0
+var infinite_left := 0.0
+var recon_left := 0.0
+var shot_serial := 0
 var deaths := 0
 var yaw := 0.0
 var pitch := 0.0
@@ -179,6 +184,8 @@ func _physics_process(delta: float) -> void:
 		bot_grenade_cooldown = maxf(0, bot_grenade_cooldown - delta)
 		flash_left = maxf(0, flash_left - delta)
 		shield_left = maxf(0, shield_left - delta)
+		infinite_left = maxf(0, infinite_left - delta)
+		recon_left = maxf(0, recon_left - delta)
 		radar_left = maxf(0, radar_left - delta)
 		if bot:
 			game.bots.update(self, delta)
@@ -310,6 +317,9 @@ func reset_at(pos: Vector3) -> void:
 	flashes = 1
 	shield_left = 0
 	shield_charges = 1
+	streak = 0
+	infinite_left = 0
+	recon_left = 0
 	trigger_held = false
 	flash_left = 0
 	radar_left = 0
@@ -333,7 +343,7 @@ func snapshot() -> Dictionary:
 	return {"id": peer_id, "name": nickname, "team": team, "bot": bot, "primary": primary,
 		"p": global_position, "v": velocity, "yaw": yaw, "pitch": pitch, "hp": hp,
 		"kills": kills, "deaths": deaths, "weapon": weapon, "mag": magazines, "reserve": reserves,
-		"skins": skin_designs, "shield": shield_left, "shield_charges": shield_charges, "rope": rope_active, "cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
+		"rewards": [streak, ult_charge, snappedf(infinite_left, 0.1), snappedf(recon_left, 0.1), shot_serial], "skins": skin_designs, "shield": shield_left, "shield_charges": shield_charges, "rope": rope_active, "cooldown": cooldown, "melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
 		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id,
 		"flash": flash_left, "flashes": flashes, "radar": radar_left, "mantle": mantle_left, "life": life}
 
@@ -344,6 +354,12 @@ func apply_snapshot(s: Dictionary) -> void:
 		world_weapon = -1
 	var new_life := life != int(s.get("life", life))
 	life = int(s.get("life", life))
+	var rewards: Array = s.get("rewards", [0, 0, 0.0, 0.0, 0])
+	streak = rewards[0]
+	ult_charge = rewards[1]
+	infinite_left = rewards[2]
+	recon_left = rewards[3]
+	shot_serial = rewards[4]
 	var was_dead := hp <= 0
 	target_position = s.p
 	target_velocity = s.v

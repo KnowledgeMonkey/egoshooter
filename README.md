@@ -60,11 +60,29 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 | Q | Primärwaffe ↔ Pistole |
 | G | Frag-Granate werfen, 2 pro Leben |
 | F | Flashbang werfen, 1 pro Leben |
+| H | Aufgeladene Claymore platzieren |
 | V | Nahkampfschlag, 65 Schaden bei maximal 2,1 m |
 | E | Seilaufzug am Endpunkt benutzen; SPACE lässt los |
 | Tab | Scoreboard |
 | F11 | Vollbild umschalten |
 | Esc | Menü / Maus freigeben |
+
+## Killstreaks und H-Fähigkeit
+
+Kills ohne eigenen Tod schalten Belohnungen automatisch frei:
+
+| Serie | Belohnung |
+|---|---|
+| 5 | 60 Sekunden Endlosmunition für beide Waffen, ohne Nachladen; Feuerrate und Rückstoß bleiben erhalten. |
+| 10 | 30 Sekunden UAV: lebende Gegner auf der eigenen Minimap. |
+| 15 | Sofort 100 HP und eine neue Frontschildladung. |
+| 20 | Nuke mit 8 Sekunden Vorwarnung. Alle lebenden Spieler werden ausgeschaltet; Auslöser bzw. sein Team gewinnt die Runde. |
+
+Der Tod setzt die Serie und zeitlich begrenzte Boni zurück. Eine bereits gestartete Nuke läuft weiter und hat Vorrang vor Score-/Zeitlimit. Sie überwindet auch Spawn- und Frontschildschutz; ihre Eliminierungen erzeugen keine neuen Belohnungen.
+
+**H / Claymore:** Vier Eliminierungen während des eigenen Lebens laden die Leiste vollständig auf; der Fortschritt bleibt über Tode hinweg erhalten. H platziert eine Mine vor dem Spieler auf geeignetem Boden. Eine Sekunde Scharfschaltung, 5 m Erkennungskegel nach vorne, 6 m Explosionsradius mit Entfernungsabfall und Deckungsprüfung. Maximal eine gespeicherte Ladung und zwei Minen pro Spieler; eine dritte ersetzt die älteste. Fehlgeschlagene Platzierung verbraucht keine Ladung. Minen bleiben bis zur Auslösung, zum Verlassen des Besitzers oder zum Rundenende bestehen. TDM-Teammitglieder lösen sie nicht aus.
+
+Belohnungen, Minen und H-Aktionen werden serverautoritär verwaltet und im LAN synchronisiert. [Implementierung und Tests](docs/KILLSTREAKS.md).
 
 ## Arsenal, Frontschild und Weapon Lab
 

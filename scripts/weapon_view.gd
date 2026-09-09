@@ -5,6 +5,7 @@ var model: Node3D
 var hands: Node3D
 var displayed := -1
 var last_ammo := -1
+var last_shots := -1
 var kick := 0.0
 var equip := 0.0
 var recoil := Vector2.ZERO
@@ -29,6 +30,7 @@ func select_weapon(index: int) -> void:
 	skin_revision = WeaponSkins.revision
 	displayed = index
 	last_ammo = -1
+	last_shots = -1
 	equip = float(WeaponHandling.DATA[index].equip)
 	recoil = Vector2.ZERO
 	recoil_velocity = Vector2.ZERO
@@ -131,13 +133,14 @@ func animate(p: Fighter, dt: float) -> void:
 	var ammo: int = p.magazines[p.weapon]
 	var ads := WeaponHandling.smooth(p.aim_blend)
 	shot_age += dt
-	if last_ammo >= 0 and ammo < last_ammo:
-		var count := mini(last_ammo - ammo, 3)
+	if last_ammo >= 0 and (ammo < last_ammo or (last_shots >= 0 and p.shot_serial > last_shots)):
+		var count := mini(maxi(last_ammo - ammo, p.shot_serial - last_shots), 3)
 		recoil_velocity += Vector2(profile.kick, profile.rise) * float(profile.spring) * 2.1 * count * lerpf(1, 0.65, ads)
 		kick = 1
 		muzzle_left = 0.04
 		shot_age = 0
 	last_ammo = ammo
+	last_shots = p.shot_serial
 	var spring := WeaponHandling.settle(recoil, recoil_velocity, profile.spring, dt)
 	recoil = spring[0]
 	recoil_velocity = spring[1]

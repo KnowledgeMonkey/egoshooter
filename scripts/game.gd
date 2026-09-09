@@ -30,6 +30,7 @@ var effects: Node3D
 var projectiles: Node3D
 var objectives: RoundObjectives
 var history: CombatHistory
+var streaks: Killstreaks
 var burn_zones: BurnZones
 var grenade_serial := 0
 var snapshot_clock := 0.0
@@ -77,6 +78,9 @@ func _ready() -> void:
 	burn_zones = BurnZones.new()
 	burn_zones.game = self
 	add_child(burn_zones)
+	streaks = Killstreaks.new()
+	streaks.game = self
+	add_child(streaks)
 	bots = BotDirector.new(self)
 	audio = ArenaAudio.new()
 	add_child(audio)
@@ -126,7 +130,7 @@ func _ready() -> void:
 
 func setup_inputs() -> void:
 	var keys := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "jump": KEY_SPACE,
-		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "shield": KEY_B, "interact": KEY_E, "melee": KEY_V, "switch": KEY_Q, "scoreboard": KEY_TAB}
+		"ultimate": KEY_H, "sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "shield": KEY_B, "interact": KEY_E, "melee": KEY_V, "switch": KEY_Q, "scoreboard": KEY_TAB}
 	for action in keys:
 		InputMap.add_action(action)
 		var event := InputEventKey.new()
@@ -263,6 +267,7 @@ func restart_round() -> void:
 		grenades.remove_child(grenade)
 		grenade.queue_free()
 	burn_zones.clear()
+	streaks.clear()
 	for effect in effects.get_children():
 		effects.remove_child(effect)
 		effect.queue_free()
@@ -272,6 +277,10 @@ func restart_round() -> void:
 		projectile.queue_free()
 	for fighter: Fighter in players.values():
 		fighter.kills = 0
+		fighter.streak = 0
+		fighter.ult_charge = 0
+		fighter.infinite_left = 0
+		fighter.recon_left = 0
 		fighter.deaths = 0
 		respawn(fighter)
 	snapshot_clock = 0.05
@@ -303,6 +312,7 @@ func leave(reason: String = "") -> void:
 	for grenade in grenades.get_children():
 		grenade.queue_free()
 	burn_zones.clear()
+	streaks.clear()
 	for effect in effects.get_children():
 		effects.remove_child(effect)
 		effect.queue_free()
@@ -428,7 +438,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		p.yaw = wrapf(p.yaw - event.relative.x * sensitivity, -PI, PI)
 		p.pitch = clampf(p.pitch - event.relative.y * sensitivity, -1.5, 1.5)
-	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact", "shield"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact", "shield", "ultimate"]:
 		if event.is_action_pressed(action):
 			pending[action] = true
 
@@ -458,11 +468,12 @@ func _physics_process(dt: float) -> void:
 			input_sequence += 1
 			submit_input.rpc_id(1, input_sequence, command)
 	if is_host:
+		streaks.advance(dt)
 		burn_zones.advance(dt)
 		objectives.advance(dt)
 		if not match_over:
 			time_left = maxf(0, time_left - dt)
-			if time_left <= 0:
+			if time_left <= 0 and streaks.nuke_left <= 0:
 				finish_match()
 		snapshot_clock += dt
 		if snapshot_clock >= 0.05:
@@ -474,7 +485,7 @@ func _physics_process(dt: float) -> void:
 			var frags := []
 			for g: FragGrenade in grenades.get_children():
 				frags.append({"id": int(g.name), "p": g.global_position, "owner": g.owner_id, "kind": g.kind})
-			var packet := var_to_bytes([roster, scores, time_left, match_over, winner, frags, burn_zones.snapshot(), objectives.snapshot()]).compress(FileAccess.COMPRESSION_DEFLATE)
+			var packet := var_to_bytes([roster, scores, time_left, match_over, winner, frags, burn_zones.snapshot(), objectives.snapshot(), streaks.snapshot()]).compress(FileAccess.COMPRESSION_DEFLATE)
 			receive_state.rpc(packet)
 
 @rpc("any_peer", "call_remote", "unreliable_ordered", 1)
@@ -511,7 +522,7 @@ func submit_actions(seq: int, actions: Dictionary) -> void:
 	if p == null or p.hp <= 0 or seq <= p.last_action_sequence:
 		return
 	p.last_action_sequence = seq
-	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact", "shield"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch", "melee", "interact", "shield", "ultimate"]:
 		if actions.get(action, false) == true:
 			p.queued_actions[action] = true
 
@@ -525,7 +536,7 @@ func receive_state(packet: PackedByteArray) -> void:
 	if not active:
 		return
 	var decoded: Array = bytes_to_var(packet.decompress_dynamic(65536, FileAccess.COMPRESSION_DEFLATE))
-	if decoded.size() < 7 or decoded.size() > 8:
+	if decoded.size() < 7 or decoded.size() > 9:
 		return
 	var roster: Array = decoded[0]
 	history.record(roster)
@@ -540,6 +551,7 @@ func receive_state(packet: PackedByteArray) -> void:
 	var frags: Array = decoded[5]
 	burn_zones.sync(decoded[6])
 	if decoded.size() > 7: objectives.sync(decoded[7])
+	if decoded.size() > 8: streaks.sync(decoded[8])
 	scores = team_scores
 	time_left = remaining
 	match_over = ended
@@ -573,6 +585,7 @@ func receive_state(packet: PackedByteArray) -> void:
 			g.queue_free()
 
 func check_win() -> void:
+	if streaks.nuke_left > 0 or match_over: return
 	if config.mode != "FFA":
 		if scores.max() >= config.score_limit:
 			finish_match()
@@ -696,3 +709,15 @@ func muzzle_trace(id: int, start: Vector3, end: Vector3) -> void:
 		var wall := get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(p.eye(), start, 1))
 		if not wall.is_empty(): start = wall.position
 	tracer(start, end)
+
+@rpc("authority", "call_local", "reliable")
+func nuke_effect() -> void:
+	streaks.flash_left = 3
+	if not headless:
+		var point := Vector3(0, 12, 0)
+		CombatVisuals.explosion(effects, point)
+		for i in 12:
+			var direction := Vector3(cos(i * TAU / 12), 0, sin(i * TAU / 12))
+			CombatVisuals.puff(effects, point + Vector3.UP * 14 + direction * 12, 16, "smoke", 7, direction * 18 + Vector3.UP * 12)
+			CombatVisuals.puff(effects, point + direction * 5, 12, "fireball", 2, direction * 12 + Vector3.UP * 8)
+		audio.play_at("explosion", menu_camera.global_position, true)

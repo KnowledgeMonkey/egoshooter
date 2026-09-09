@@ -15,6 +15,8 @@ func actions(p: Fighter) -> void:
 	var fire: bool = cmd.get("fire", false)
 	var pressed := fire and not p.trigger_held
 	p.trigger_held = fire
+	if cmd.get("ultimate", false): game.streaks.place(p)
+	cmd["ultimate"] = false
 	if cmd.get("shield", false): EnergyShield.activate(p)
 	cmd["shield"] = false
 	if cmd.get("melee", false):
@@ -28,7 +30,7 @@ func actions(p: Fighter) -> void:
 		p.reload_left = 0
 		p.cooldown = maxf(p.cooldown, float(WeaponHandling.DATA[p.weapon].equip))
 		cmd["switch"] = false
-	if cmd.get("reload", false) and p.reload_left <= 0 and p.magazines[p.weapon] < Arsenal.DATA[p.weapon].mag and p.reserves[p.weapon] > 0:
+	if p.infinite_left <= 0 and cmd.get("reload", false) and p.reload_left <= 0 and p.magazines[p.weapon] < Arsenal.DATA[p.weapon].mag and p.reserves[p.weapon] > 0:
 		p.reload_left = Arsenal.DATA[p.weapon].reload
 		game.fx.rpc("reload", p.eye(), p.peer_id, 0)
 	cmd["reload"] = false
@@ -53,7 +55,8 @@ func actions(p: Fighter) -> void:
 func shoot(p: Fighter) -> void:
 	p.radar_left = 1.5
 	var w: Dictionary = Arsenal.DATA[p.weapon]
-	p.magazines[p.weapon] -= 1
+	p.shot_serial += 1
+	if p.infinite_left <= 0: p.magazines[p.weapon] -= 1
 	p.cooldown = w.rate
 	p.protection = 0
 	var hit_any := false
@@ -125,6 +128,10 @@ func damage(target: Fighter, source: Fighter, amount: float, weapon_name: String
 		game.combat_notice.rpc_id(target.peer_id, "hurt", target.life, origin if origin.is_finite() else source.eye())
 	if target.hp <= 0:
 		target.deaths += 1
+		target.streak = 0
+		target.infinite_left = 0
+		target.recon_left = 0
+		target.shield_left = 0
 		game.objectives.death(target)
 		target.respawn_left = 3
 		target.killer = source.nickname
@@ -133,6 +140,7 @@ func damage(target: Fighter, source: Fighter, amount: float, weapon_name: String
 		target.shape.set_deferred("disabled", true)
 		if source != target:
 			source.kills += 1
+			game.streaks.earned(source)
 			if not source.bot and (source.peer_id == game.multiplayer.get_unique_id() or source.peer_id in game.multiplayer.get_peers()):
 				game.combat_notice.rpc_id(source.peer_id, "elimination", source.life, target.eye(), target.nickname)
 			if game.config.mode in ["TDM", "FFA"]: game.scores[source.team] += 1
