@@ -3,6 +3,7 @@ extends RefCounted
 
 const G = preload("res://scripts/weapon_geometry.gd")
 static var cache := {}
+static var muzzle_points := {}
 
 static func build(index: int) -> Node3D:
 	if cache.has(index):
@@ -25,6 +26,11 @@ static func build(index: int) -> Node3D:
 		3: sniper(frame, magazine, bolt)
 		4: pistol(frame, magazine, bolt)
 	WeaponVariants.decorate(index, frame, magazine)
+	var muzzle := Marker3D.new()
+	muzzle.name = "Muzzle"
+	muzzle.position = frame.get_meta("muzzle")
+	root.add_child(muzzle)
+	muzzle_points[index] = muzzle.position
 	WeaponSkins.split_frame(frame)
 	G.batch(magazine)
 	G.batch(bolt)
@@ -64,6 +70,7 @@ static func stock(parent: Node3D, key: String, precision: bool = false) -> void:
 static func barrel(parent: Node3D, z: float, length: float, radius: float = 0.011) -> void:
 	G.tube(parent, Vector3(0, 0.016, z), radius, length, "steel")
 	var tip := z - length / 2
+	parent.set_meta("muzzle", Vector3(0, 0.016, tip - 0.042))
 	G.tube(parent, Vector3(0, 0.016, tip - 0.018), radius * 1.6, 0.044, "black")
 	G.tube(parent, Vector3(0, 0.016, tip - 0.041), radius * 0.76, 0.002, "rubber")
 	for i in 3:
@@ -172,6 +179,7 @@ static func sniper(frame: Node3D, mag: Node3D, bolt: Node3D) -> void:
 	G.label(frame, "LONGSHOT M77\n7.62 / PRECISION SYSTEMS", Vector3(0.036, -0.026, -0.1), 23)
 
 static func pistol(frame: Node3D, mag: Node3D, bolt: Node3D) -> void:
+	frame.set_meta("muzzle", Vector3(0, 0.036, -0.192))
 	G.profile(frame, PackedVector2Array([Vector2(0.065, 0.01), Vector2(-0.18, 0.01), Vector2(-0.18, -0.04),
 		Vector2(-0.055, -0.05), Vector2(0.015, -0.075), Vector2(0.064, -0.055)]), 0.033, Vector3.ZERO, "polymer")
 	G.block(bolt, Vector3(0, 0.036, -0.058), Vector3(0.035, 0.044, 0.25), "steel")
@@ -189,3 +197,9 @@ static func pistol(frame: Node3D, mag: Node3D, bolt: Node3D) -> void:
 	G.block(bolt, Vector3(0, 0.072, -0.157), Vector3(0.002, 0.002, 0.004), "red")
 	G.block(bolt, Vector3(0.018, 0.039, -0.048), Vector3(0.002, 0.021, 0.035), "silver")
 	G.label(bolt, "P12  /  9×19", Vector3(0.019, 0.04, -0.11), 23)
+
+static func muzzle_position(index: int) -> Vector3:
+	if not muzzle_points.has(index):
+		var model := build(index)
+		model.free()
+	return muzzle_points[index]

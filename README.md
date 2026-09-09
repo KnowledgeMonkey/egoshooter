@@ -67,6 +67,14 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 | F11 | Vollbild umschalten |
 | Esc | Menü / Maus freigeben |
 
+## Längere Gefechte und Laufmündung
+
+Die Waffen verursachen weniger Schaden bei unveränderter Kadenz. Bei 100 HP und nahen Oberkörpertreffern braucht die AR-4 jetzt 5 statt 4 Treffer (0,42 statt 0,315 s vom ersten bis zum letzten Treffer); V9 7 statt 5, LM60 4 statt 3, D58 3 statt 2. Schrotflinten benötigen bei reinen Körpertreffern mindestens zwei (SG-8) bzw. drei Schüsse (AS12). Kopf-/Beintreffer, Streuung und Entfernung verändern diese Werte. Die M77 behält ihren One-Shot-Schaden.
+
+Waffenmodelle besitzen einen Mündungspunkt direkt an der Lauföffnung. Trefferursprung, sichtbare Schusslinie und Mündungsfeuer verwenden diese Modelldaten statt separat geschätzter Laufpositionen. Die sichtbare Schusslinie folgt dem animierten Waffenmodell; die serverautoritäre Flugbahn verwendet dieselbe Laufgeometrie in der Gameplay-Haltung und prüft weiterhin nahe Deckung.
+
+Details und Prüfungen: [TTK und Laufmündung](docs/TTK-MUZZLE.md).
+
 ## Killstreaks und H-Fähigkeit
 
 Kills ohne eigenen Tod schalten Belohnungen automatisch frei:
@@ -88,7 +96,7 @@ Belohnungen, Minen und H-Aktionen werden serverautoritär verwaltet und im LAN s
 
 **LOADOUT → WAFFEN-SKINS / FARBEN & TEXT** öffnet den neuen Editor. Alle zehn Waffen haben acht getrennt färbbare Bereiche: Gehäuse, Handschutz, Schaft, Lauf, Griff, Visierung, Magazin und Verschluss. Eigener Text (bis 32 Zeichen) und Textfarbe sind ebenfalls einstellbar. Die Vorschau lässt sich mit gedrückter linker Maustaste drehen. **DESIGN SPEICHERN** aktiviert das Design pro Waffe und speichert es lokal. Beim LAN-Beitritt werden die Designs der ausgerüsteten Primärwaffe und Pistole übertragen. Werkdesign wiederherstellen setzt die Farben und Beschriftung zurück. Ungespeicherte Änderungen werden beim Verlassen verworfen.
 
-Neu im Arsenal: **D58 Sentinel** (halbautomatisches Präzisionsgewehr, 58 Basisschaden), **LM60 Bastion** (LMG, 34), **AK42 Hammer** (schweres Gewehr, 42), **K16 Viper** (schnelle SMG, 16) und **AS12 Cyclone** (automatische Shotgun, 12 je Schrotkorn). Eigene Anbauteile, Magazine, Handlingprofile und Schussklänge unterscheiden die Varianten. Die **M77** verursacht 130 Basisschaden und kann ungeschützte Gegner mit einem Treffer ausschalten. Trefferzone, Entfernung und Schutz beeinflussen den tatsächlichen Schaden.
+Neu im Arsenal: **D58 Sentinel** (halbautomatisches Präzisionsgewehr, 45 Basisschaden), **LM60 Bastion** (LMG, 26), **AK42 Hammer** (schweres Gewehr, 32), **K16 Viper** (schnelle SMG, 11) und **AS12 Cyclone** (automatische Shotgun, 7,5 je Schrotkorn). Eigene Anbauteile, Magazine, Handlingprofile und Schussklänge unterscheiden die Varianten. Die **M77** verursacht 130 Basisschaden und kann ungeschützte Gegner mit einem Treffer ausschalten. Trefferzone, Entfernung und Schutz beeinflussen den tatsächlichen Schaden.
 
 **B** entfaltet ein weiß/neonblaues Frontschild für **45 Sekunden**, einmal pro Leben. Es blockiert Schaden aus der Blickrichtung; Seiten und Rücken bleiben verwundbar. **R** bleibt Nachladen. Server und Clients synchronisieren Dauer und Ladung. Schussbahnen beginnen an der Waffenmündung; die Zielrichtung wird mit dem Fadenkreuz abgeglichen und nahe Wände werden berücksichtigt.
 

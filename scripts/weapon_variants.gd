@@ -6,10 +6,12 @@ const G = preload("res://scripts/weapon_geometry.gd")
 static func decorate(index: int, frame: Node3D, magazine: Node3D) -> void:
 	match index:
 		5: # Long precision barrel, cheek rest and folded bipod.
+			frame.set_meta("muzzle", Vector3(0, 0.012, -0.85))
 			G.tube(frame, Vector3(0, 0.012, -0.72), 0.018, 0.26, "steel")
 			G.block(frame, Vector3(0, 0.016, 0.21), Vector3(0.09, 0.07, 0.13), "rubber")
 			for side in [-1, 1]: G.block(frame, Vector3(side * 0.047, -0.052, -0.36), Vector3(0.014, 0.016, 0.20), "edge")
 		6: # Box-fed LMG with barrel shroud and carry handle.
+			frame.set_meta("muzzle", Vector3(0, 0.01, -0.82))
 			G.block(magazine, Vector3(0, -0.13, -0.14), Vector3(0.17, 0.17, 0.16), "polymer")
 			G.tube(frame, Vector3(0, 0.01, -0.68), 0.031, 0.28, "black")
 			for z in [-0.78, -0.72, -0.66, -0.60]:

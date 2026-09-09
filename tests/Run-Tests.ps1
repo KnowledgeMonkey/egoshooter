@@ -23,7 +23,7 @@ if ($LASTEXITCODE -ne 0) { throw "FPS feature tests failed." }
 if ($LASTEXITCODE -ne 0) { throw "Weapon handling tests failed." }
 & $enginePath --headless --path . --log-file ./tests/war-district.log --script tests/war_district.gd
 if ($LASTEXITCODE -ne 0) { throw "War district tests failed." }
-foreach ($suite in @('arsenal_shield', 'skins', 'killstreaks')) {
+foreach ($suite in @('arsenal_shield', 'skins', 'killstreaks', 'ttk_muzzle')) {
     & $enginePath --headless --path . --log-file "./tests/$suite.log" --script "tests/$suite.gd"
     if ($LASTEXITCODE -ne 0) { throw "$suite failed." }
     if (Select-String -Path "tests/$suite.log" -Pattern 'SCRIPT ERROR|FAIL ') { throw "$suite runtime error." }

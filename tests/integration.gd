@@ -57,10 +57,11 @@ func run() -> void:
 	await settle()
 	game.combat.shoot(a)
 	check(b.hp < 100 and b.hp > 0 and a.magazines[0] == 29, "authoritative hitscan deals damage and consumes one round")
+	var body_damage := 100 - b.hp
 	b.hp = 100
 	a.pitch = 0
 	game.combat.shoot(a)
-	check(b.hp < 60, "head hit has increased damage")
+	check(100 - b.hp > body_damage * 1.5, "head hit has increased damage")
 	b.hp = 100
 	b.protection = 1
 	game.combat.shoot(a)

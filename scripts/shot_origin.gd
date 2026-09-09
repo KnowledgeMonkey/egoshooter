@@ -3,8 +3,8 @@ extends RefCounted
 
 static func muzzle(p: Fighter) -> Vector3:
 	var sight: float = [0.11, 0.11, 0.06, 0.108, 0.068][Arsenal.FAMILIES[p.weapon]]
-	var mount := Vector3(0, -sight, -0.36 if p.weapon == 4 else -0.20) if p.aiming else Vector3(0.17, -0.18, -0.43 if p.weapon == 4 else -0.22)
-	return p.eye() + Basis.from_euler(Vector3(p.pitch, p.yaw, 0)) * (mount + Vector3(0, 0.01, WeaponHandling.DATA[p.weapon].muzzle))
+	var mount := Vector3(0, -sight, -0.36 if p.weapon == 4 else -0.20) if p.aiming else (Vector3(0.18, -0.22, -0.43) if p.weapon == 4 else Vector3(0.17, -0.18, -0.22))
+	return p.eye() + Basis.from_euler(Vector3(p.pitch, p.yaw, 0)) * (mount + WeaponModels.muzzle_position(p.weapon))
 
 static func path(p: Fighter, direction: Vector3, reach: float) -> Dictionary:
 	var space := p.get_world_3d().direct_space_state
@@ -20,5 +20,7 @@ static func path(p: Fighter, direction: Vector3, reach: float) -> Dictionary:
 
 static func visual(p: Fighter) -> Vector3:
 	if p.is_local() and p.gun.displayed == p.weapon and is_instance_valid(p.gun.muzzle):
-		return p.gun.muzzle.global_position
-	return p.world_gun.to_global(Vector3(0, 0.01, WeaponHandling.DATA[p.weapon].muzzle))
+		return p.gun.model.get_node("Muzzle").global_position
+	if p.world_weapon == p.weapon and p.world_gun.get_child_count() > 0:
+		return p.world_gun.get_child(0).get_node("Muzzle").global_position
+	return muzzle(p)

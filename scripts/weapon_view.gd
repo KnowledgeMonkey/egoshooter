@@ -44,7 +44,7 @@ func select_weapon(index: int) -> void:
 	flash.radial_segments = 8
 	flash.rings = 4
 	muzzle.mesh = flash
-	muzzle.position = Vector3(0, 0.01, WeaponHandling.DATA[index].muzzle)
+	muzzle.position = WeaponModels.muzzle_position(index) + Vector3(0, 0, -0.035)
 	muzzle.rotation.x = PI / 2
 	var glow := StandardMaterial3D.new()
 	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
