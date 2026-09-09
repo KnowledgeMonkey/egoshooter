@@ -106,5 +106,10 @@ func animate(p: Fighter, dt: float) -> void:
 	if p.weapon == 2:
 		bolt.position.z += reload_curve * 0.06
 	hands.rotation.z = reload_curve * 0.1
+	var strike := sin(clampf((0.65 - p.melee_left) / 0.65, 0, 1) * PI) if p.melee_left > 0 else 0.0
+	model.position += Vector3(-0.10, 0.025, -0.24) * strike
+	model.rotation += Vector3(-0.12, -0.3, 0.38) * strike
+	hands.position = Vector3(-0.10, 0.025, -0.24) * strike
+	hands.rotation.z += strike * 0.38
 	model.visible = not (p.weapon == 3 and p.aiming)
 	hands.visible = model.visible

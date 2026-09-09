@@ -9,7 +9,14 @@ func _init(owner_game: Node3D) -> void:
 	game = owner_game
 
 func actions(p: Fighter) -> void:
+	if not game.is_host or not game.active or game.match_over or p.hp <= 0:
+		return
 	var cmd := p.input_data
+	if cmd.get("melee", false):
+		melee(p)
+	cmd["melee"] = false
+	if p.melee_left > 0 or p.mantle_left > 0:
+		return
 	if cmd.get("switch", false):
 		p.weapon = 4 if p.weapon == p.primary else p.primary
 		p.reload_left = 0
@@ -91,13 +98,15 @@ func shoot(p: Fighter) -> void:
 	if p.bot:
 		p.pitch += float(w.recoil) * 0.3
 
-func damage(target: Fighter, source: Fighter, amount: float, weapon_name: String, head: bool) -> bool:
+func damage(target: Fighter, source: Fighter, amount: float, weapon_name: String, head: bool, origin: Vector3 = Vector3.INF) -> bool:
 	if target.hp <= 0 or target.protection > 0:
 		return false
 	if target != source and not game.enemies(target, source):
 		return false
 	target.hp = maxf(0, target.hp - amount)
 	target.last_hurt = 0
+	if not target.bot and (target.peer_id == game.multiplayer.get_unique_id() or target.peer_id in game.multiplayer.get_peers()):
+		game.combat_notice.rpc_id(target.peer_id, "hurt", target.life, origin if origin.is_finite() else source.eye())
 	if target.hp <= 0:
 		target.deaths += 1
 		game.objectives.death(target)
@@ -108,6 +117,8 @@ func damage(target: Fighter, source: Fighter, amount: float, weapon_name: String
 		target.shape.set_deferred("disabled", true)
 		if source != target:
 			source.kills += 1
+			if not source.bot and (source.peer_id == game.multiplayer.get_unique_id() or source.peer_id in game.multiplayer.get_peers()):
+				game.combat_notice.rpc_id(source.peer_id, "elimination", source.life, target.eye(), target.nickname)
 			if game.config.mode in ["TDM", "FFA"]: game.scores[source.team] += 1
 		game.kill_notice.rpc(source.nickname, target.nickname, weapon_name, head)
 		game.fx.rpc("death", target.eye(), target.peer_id, 0)
@@ -125,7 +136,7 @@ func explode(pos: Vector3, owner_id: int) -> void:
 	for target: Fighter in game.players.values():
 		var distance := pos.distance_to(target.eye())
 		if distance < BLAST_RADIUS and game.visible_between(pos + Vector3.UP * 0.15, target.eye(), [target.get_rid()]):
-			damage(target, source, lerpf(BLAST_DAMAGE, 0, distance / BLAST_RADIUS), "FRAG", false)
+			damage(target, source, lerpf(BLAST_DAMAGE, 0, distance / BLAST_RADIUS), "FRAG", false, pos)
 
 func flash(pos: Vector3) -> void:
 	if not game.is_host or not game.active or game.match_over: return
@@ -137,3 +148,30 @@ func flash(pos: Vector3) -> void:
 		var facing := Arsenal.direction(target.yaw, target.pitch).dot(offset.normalized())
 		var strength := (1 - distance / 20) * (1.0 if facing > 0.2 else 0.3)
 		target.flash_left = maxf(target.flash_left, strength * 4)
+
+func melee(p: Fighter) -> void:
+	if not game.is_host or not game.active or game.match_over or p.hp <= 0 or p.melee_left > 0 or p.mantle_left > 0:
+		return
+	p.melee_left = 0.65
+	p.aiming = false
+	p.cooldown = maxf(p.cooldown, p.melee_left)
+	p.reload_left = 0
+	p.protection = 0
+	game.fx.rpc("melee", p.eye(), p.peer_id, 0)
+	var forward := Arsenal.direction(p.yaw, p.pitch)
+	var nearest: Fighter = null
+	var best := 2.1
+	for target: Fighter in game.players.values():
+		if target == p or target.hp <= 0 or not game.enemies(p, target):
+			continue
+		var point := target.global_position + Vector3.UP * (0.75 if target.crouched else 1.2)
+		var offset := point - p.eye()
+		if offset.length() >= best or forward.dot(offset.normalized()) < 0.65:
+			continue
+		var ray := PhysicsRayQueryParameters3D.create(p.eye(), point, 3, [p.get_rid()])
+		var hit := game.get_world_3d().direct_space_state.intersect_ray(ray)
+		if not hit.is_empty() and hit.collider == target:
+			nearest = target
+			best = offset.length()
+	if nearest != null and damage(nearest, p, 65, "MELEE", false) and not p.bot:
+		game.feedback.rpc_id(p.peer_id, false)

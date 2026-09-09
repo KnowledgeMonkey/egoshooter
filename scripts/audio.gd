@@ -6,11 +6,11 @@ var rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	rng.seed = 721
-	for kind in ["shot", "step", "reload", "explosion", "hit", "death", "flash"]:
+	for kind in ["shot", "step", "reload", "explosion", "hit", "death", "flash", "melee", "confirm"]:
 		sounds[kind] = synthesize(kind)
 
 func synthesize(kind: String) -> AudioStreamWAV:
-	var duration: float = {"shot": 0.16, "step": 0.08, "reload": 0.3, "explosion": 1.8, "flash": 0.22, "hit": 0.08, "death": 0.25}[kind]
+	var duration: float = {"melee": 0.18, "confirm": 0.24, "shot": 0.16, "step": 0.08, "reload": 0.3, "explosion": 1.8, "flash": 0.22, "hit": 0.08, "death": 0.25}[kind]
 	var data := PackedByteArray()
 	var count := int(duration * 22050)
 	data.resize(count * 2)
@@ -22,6 +22,8 @@ func synthesize(kind: String) -> AudioStreamWAV:
 		filtered = lerpf(filtered, noise, 0.16)
 		var value := noise * 0.5 + sin(t * 520) * 0.5
 		match kind:
+			"melee": value = filtered * 2.0 + sin(t * 210) * 0.3
+			"confirm": value = sin(t * (5400 if t < 0.1 else 7200)) * 0.32
 			"step": value = filtered * 2 + sin(t * 380) * 0.2
 			"reload": value = noise * (0.5 if fmod(t, 0.1) < 0.025 else 0.04)
 			"explosion": value = filtered * 2.7 + sin(TAU * (48 * t - 7 * t * t)) * 0.7 + noise * exp(-t * 32) * 0.5

@@ -7,6 +7,16 @@ var font: SystemFont
 var feed: Array = []
 var hit_time := 0.0
 var head_hit := false
+var hurt_time := 0.0
+var hurt_origin := Vector3.ZERO
+var elimination_time := 0.0
+var elimination_name := ""
+var notice_life := -1
+
+static func damage_direction(origin: Vector3, player: Fighter) -> Vector2:
+	var local_offset := Basis(Vector3.UP, -player.yaw) * (origin - player.eye())
+	return Vector2(local_offset.x, local_offset.z).normalized()
+
 const WHITE := Color("e7eee8")
 const MINT := Color("a5dec8")
 const ORANGE := Color("ef9b72")
@@ -23,6 +33,12 @@ func _ready() -> void:
 
 func _process(dt: float) -> void:
 	hit_time = maxf(0, hit_time - dt)
+	hurt_time = maxf(0, hurt_time - dt)
+	elimination_time = maxf(0, elimination_time - dt)
+	var p: Fighter = game.players.get(game.local_id)
+	if not game.active or p == null or p.life != notice_life:
+		hurt_time = 0
+		elimination_time = 0
 	canvas.visible = game.active
 	canvas.queue_redraw()
 
@@ -78,10 +94,19 @@ func render() -> void:
 	text(Vector2(1375, 833), "/ %03d" % p.reserves[p.weapon], 22)
 	text(Vector2(1430, 807), "F × %s" % p.flashes, 19, WHITE)
 	text(Vector2(1462, 837), "G × %s" % p.grenades, 19, ORANGE)
-	text(Vector2(550, 866), "WASD MOVE / R RELOAD / Q SWITCH / G FRAG / F FLASH / TAB SCORE", 13)
+	text(Vector2(485, 866), "WASD MOVE / R RELOAD / Q SWITCH / G FRAG / F FLASH / V MELEE / TAB SCORE", 13)
 	text(Vector2(42, 750), "%s ELIM   /   %s DEATHS" % [p.kills, p.deaths], 17)
 	if p.hp > 0 and not game.match_over:
 		var center := Vector2(800, 450)
+		if hurt_time > 0:
+			var direction := damage_direction(hurt_origin, p)
+			if direction.length_squared() > 0.01:
+				var angle := direction.angle()
+				canvas.draw_arc(center, 95, angle - 0.32, angle + 0.32, 16, Color(1, 0.24, 0.12, hurt_time / 0.9), 6, true)
+		if elimination_time > 0:
+			text(Vector2(650, 580), "ELIMINIERT · " + elimination_name, 22, ORANGE)
+		if p.magazines[p.weapon] <= maxi(1, int(Arsenal.DATA[p.weapon].mag) / 4) and p.reload_left <= 0:
+			text(Vector2(707, 541), "R · NACHLADEN", 17, ORANGE)
 		if p.weapon == 3 and p.aiming:
 			canvas.draw_circle(center, 970, Color(0.01, 0.015, 0.018, 0.98), false, 1370, true)
 			canvas.draw_circle(center, 285, Color("252d30"), false, 8, true)

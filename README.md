@@ -60,9 +60,16 @@ Details zu Installation, Offline-Start und Veröffentlichung neuer Spielversione
 | Q | Primärwaffe ↔ Pistole |
 | G | Frag-Granate werfen, 2 pro Leben |
 | F | Flashbang werfen, 1 pro Leben |
+| V | Nahkampfschlag, 65 Schaden bei maximal 2,1 m |
 | Tab | Scoreboard |
 | F11 | Vollbild umschalten |
 | Esc | Menü / Maus freigeben |
+
+## Neue FPS-Funktionen
+
+**V** führt einen Nahkampfschlag aus: 65 Schaden, kurze Reichweite, 0,65 Sekunden Erholung. Er unterbricht Nachladen und blockiert währenddessen weitere Waffenaktionen. Wände, Teamschutz und Spawnschutz gelten weiterhin. Keine automatische Annäherung an Gegner.
+
+Ein roter Bogen am Fadenkreuz zeigt die Richtung des letzten eingehenden Treffers. Explosionen verwenden ihren Explosionsort. Eigene Eliminierungen erhalten einen kurzen Hinweis mit Bestätigungston. Bei niedrigem Magazinstand erscheint eine Nachlade-Erinnerung. Details und Tests: [FPS-Erweiterungen](docs/FPS-FEATURES.md).
 
 ## Enthalten
 

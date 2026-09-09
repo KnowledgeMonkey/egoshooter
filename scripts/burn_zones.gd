@@ -40,7 +40,7 @@ func advance(dt: float) -> void:
 				var source: Fighter = game.players[zone.owner]
 				for target: Fighter in game.players.values():
 					if affects(zone.p, target):
-						game.combat.damage(target, source, DAMAGE_PER_SECOND * TICK, "FRAG / FIRE", false)
+						game.combat.damage(target, source, DAMAGE_PER_SECOND * TICK, "FRAG / FIRE", false, zone.p)
 		if zone.left <= 0 or not game.players.has(zone.owner):
 			remove_zone(id)
 

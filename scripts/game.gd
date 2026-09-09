@@ -126,7 +126,7 @@ func _ready() -> void:
 
 func setup_inputs() -> void:
 	var keys := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "jump": KEY_SPACE,
-		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "switch": KEY_Q, "scoreboard": KEY_TAB}
+		"sprint": KEY_SHIFT, "crouch": KEY_CTRL, "reload": KEY_R, "grenade": KEY_G, "flash": KEY_F, "melee": KEY_V, "switch": KEY_Q, "scoreboard": KEY_TAB}
 	for action in keys:
 		InputMap.add_action(action)
 		var event := InputEventKey.new()
@@ -427,7 +427,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		p.yaw = wrapf(p.yaw - event.relative.x * sensitivity, -PI, PI)
 		p.pitch = clampf(p.pitch - event.relative.y * sensitivity, -1.5, 1.5)
-	for action in ["jump", "reload", "grenade", "flash", "switch"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch", "melee"]:
 		if event.is_action_pressed(action):
 			pending[action] = true
 
@@ -510,7 +510,7 @@ func submit_actions(seq: int, actions: Dictionary) -> void:
 	if p == null or p.hp <= 0 or seq <= p.last_action_sequence:
 		return
 	p.last_action_sequence = seq
-	for action in ["jump", "reload", "grenade", "flash", "switch"]:
+	for action in ["jump", "reload", "grenade", "flash", "switch", "melee"]:
 		if actions.get(action, false) == true:
 			p.queued_actions[action] = true
 
@@ -671,3 +671,17 @@ func kill_notice(attacker: String, victim: String, weapon_name: String, head: bo
 	hud.feed.push_front({"text": "%s   ›   %s   ›   %s%s" % [attacker, weapon_name, victim, "  [HS]" if head else ""], "until": Time.get_ticks_msec() + 5500})
 	if hud.feed.size() > 5:
 		hud.feed.pop_back()
+
+@rpc("authority", "call_local", "reliable")
+func combat_notice(kind: String, actor_life: int, origin: Vector3, victim: String = "") -> void:
+	var p: Fighter = players.get(local_id)
+	if not active or p == null or p.life != actor_life:
+		return
+	hud.notice_life = actor_life
+	if kind == "hurt":
+		hud.hurt_origin = origin
+		hud.hurt_time = 0.9
+	elif kind == "elimination":
+		hud.elimination_name = victim
+		hud.elimination_time = 2.0
+		audio.play_at("confirm", p.eye(), true)

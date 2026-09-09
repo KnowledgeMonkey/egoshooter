@@ -18,6 +18,7 @@ var magazines := [30, 36, 8, 5, 12]
 var reserves := [120, 144, 32, 25, 60]
 var grenades := 2
 var cooldown := 0.0
+var melee_left := 0.0
 var reload_left := 0.0
 var respawn_left := 0.0
 var protection := 0.0
@@ -171,6 +172,7 @@ func _physics_process(delta: float) -> void:
 			return
 		protection = maxf(0, protection - delta)
 		cooldown = maxf(0, cooldown - delta)
+		melee_left = maxf(0, melee_left - delta)
 		last_hurt += delta
 		if last_hurt > 5:
 			hp = minf(100, hp + delta * 18)
@@ -209,7 +211,7 @@ func move_character(delta: float) -> void:
 			mantle_left = 0.35
 			input_data["jump"] = false
 			return
-	aiming = bool(input_data.get("ads", false))
+	aiming = bool(input_data.get("ads", false)) and melee_left <= 0
 	var axis: Vector2 = input_data.get("move", Vector2.ZERO)
 	axis = axis.limit_length()
 	var sprint: bool = input_data.get("sprint", false) and not aiming
@@ -274,6 +276,7 @@ func reset_at(pos: Vector3) -> void:
 	protection = 1.8
 	reload_left = 0
 	cooldown = 0
+	melee_left = 0
 	grenades = 2
 	flashes = 1
 	flash_left = 0
@@ -298,7 +301,7 @@ func snapshot() -> Dictionary:
 	return {"id": peer_id, "name": nickname, "team": team, "bot": bot, "primary": primary,
 		"p": global_position, "v": velocity, "yaw": yaw, "pitch": pitch, "hp": hp,
 		"kills": kills, "deaths": deaths, "weapon": weapon, "mag": magazines, "reserve": reserves,
-		"reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
+		"melee": melee_left, "reload": reload_left, "respawn": respawn_left, "guard": protection, "duck": crouched,
 		"grenades": grenades, "killer": killer, "killer_weapon": killer_weapon, "killer_id": killer_id,
 		"flash": flash_left, "flashes": flashes, "radar": radar_left, "mantle": mantle_left, "life": life}
 
@@ -314,6 +317,7 @@ func apply_snapshot(s: Dictionary) -> void:
 	weapon = s.weapon
 	magazines = s.mag
 	reserves = s.reserve
+	melee_left = float(s.get("melee", 0))
 	reload_left = s.reload
 	respawn_left = s.respawn
 	protection = s.guard
